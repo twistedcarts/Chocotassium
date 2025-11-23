@@ -9,3 +9,6 @@ Thumbs.db
 .idea/
 settings.json
 *.cache
+logs/
+scripts/
+.git/

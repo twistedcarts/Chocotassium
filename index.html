@@ -253,6 +253,7 @@
             flex-wrap: nowrap;
             scrollbar-width: thin;
             scrollbar-color: #3d3d3d transparent;
+            min-width: 0;
           }
           
           .tab-bar::-webkit-scrollbar {
@@ -297,6 +298,11 @@
           .tab.active {
             background: #1e1e1e;
             color: #bebebe;
+          }
+          
+          .tab.drag-over {
+            border-left: 2px solid #6b9dcc;
+            padding-left: 12px;
           }
           
           .tab:hover:not(.active) {
@@ -1080,6 +1086,109 @@
           .setting-number-input:focus {
             border-color: #6b9dcc;
           }
+          
+          .console-panel {
+            position: absolute;
+            bottom: 42px;
+            left: 3px;
+            right: 216px;
+            height: 150px;
+            background: #141515;
+            border: 1px solid #2d2d2d;
+            border-radius: 4px;
+            display: none;
+            flex-direction: column;
+            z-index: 5;
+            pointer-events: all;
+          }
+          
+          .console-panel.show {
+            display: flex;
+          }
+          
+          .console-header {
+            display: flex;
+            align-items: center;
+            padding: 6px 12px;
+            background: #1a1a1a;
+            border-bottom: 1px solid #2d2d2d;
+            border-radius: 4px 4px 0 0;
+          }
+          
+          .console-title {
+            color: #9f9f9f;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          
+          .console-close {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            color: #9f9f9f;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all 0.1s;
+            font-size: 14px;
+          }
+          
+          .console-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+          }
+          
+          .console-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 12px;
+            color: #9f9f9f;
+            background: #171717;
+            line-height: 1.5;
+          }
+          
+          .console-content::-webkit-scrollbar {
+            width: 8px;
+          }
+          
+          .console-content::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          
+          .console-content::-webkit-scrollbar-thumb {
+            background: #3d3d3d;
+            border-radius: 4px;
+          }
+          
+          .console-content::-webkit-scrollbar-thumb:hover {
+            background: #4d4d4d;
+          }
+          
+          .console-log-entry {
+            margin-bottom: 4px;
+            word-wrap: break-word;
+          }
+          
+          .console-log-time {
+            color: #6b6b6b;
+            margin-right: 8px;
+          }
+          
+          .console-empty {
+            color: #6b6b6b;
+            text-align: center;
+            padding: 40px 20px;
+            font-style: italic;
+          }
     </style>
 </head>
 
@@ -1111,6 +1220,17 @@
                     </button>
                 </div>
                 <div id="editor-container"></div>
+                <div class="console-panel" id="console-panel">
+                    <div class="console-header">
+                        <div class="console-title">
+                            <i class="fa-solid fa-terminal"></i>
+                            <span>Console</span>
+                        </div>
+                    </div>
+                    <div class="console-content" id="console-content">
+                        <div class="console-log-entry">Websocket started on port 6969</div>
+                    </div>
+                </div>
                 <div class="bottom-bar">
                     <button class="action-button">
                         <i class="fa-solid fa-play"></i>
@@ -1190,8 +1310,48 @@
                         </div>
                         <div class="setting-item">
                             <div class="setting-info">
+                                <div class="setting-name">Sticky scroll</div>
+                                <div class="setting-description">Shows nested current scopes at the top of the editor</div>
+                            </div>
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="setting-sticky-scroll">
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">Smooth caret</div>
+                                <div class="setting-description">Smooth animation when typing</div>
+                            </div>
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="setting-smooth-caret" checked>
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">Notify if not attached</div>
+                                <div class="setting-description">Show notification when trying to execute without being attached</div>
+                            </div>
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="setting-warn-execute" checked>
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
+                          <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">Show Console Panel</div>
+                                <div class="setting-description">Display Chososploit logs</div>
+                            </div>
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="setting-console-panel">
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-info">
                                 <div class="setting-name">Autosave tabs on exit</div>
-                                <div class="setting-description">Save all tabs to temp folder when closing the app</div>
+                                <div class="setting-description">Save all tabs to appdata when closing the app</div>
                             </div>
                             <label class="checkbox-container">
                                 <input type="checkbox" id="setting-autosave-exit">
@@ -1296,10 +1456,14 @@
             flip_controls: false,
             minimap: false,
             folding: true,
+            sticky_scroll: false,
+            smooth_caret: true,
+            warn_execute_unattached: true,
             autosave_exit: false,
             autosave_change: false,
             autosave_interval: false,
-            autosave_seconds: 5
+            autosave_seconds: 5,
+            console_panel: false
           };
     
           function load_settings() {
@@ -1418,6 +1582,181 @@
                 'minimap.background': '#1e1e1e'
               }
             });
+            
+            monaco.languages.registerCompletionItemProvider('lua', {
+              provideCompletionItems: (model, position) => {
+                const suggestions = [
+                  { label: 'game', kind: monaco.languages.CompletionItemKind.Variable, insertText: 'game', detail: 'Roblox game instance' },
+                  { label: 'workspace', kind: monaco.languages.CompletionItemKind.Variable, insertText: 'workspace', detail: 'Roblox workspace' },
+                  { label: 'script', kind: monaco.languages.CompletionItemKind.Variable, insertText: 'script', detail: 'Current script' },
+                  { label: 'print', kind: monaco.languages.CompletionItemKind.Function, insertText: 'print(${1:message})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Print to output' },
+                  { label: 'warn', kind: monaco.languages.CompletionItemKind.Function, insertText: 'warn(${1:message})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Print warning' },
+                  { label: 'wait', kind: monaco.languages.CompletionItemKind.Function, insertText: 'wait(${1:time})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Wait for time' },
+                  { label: 'task.wait', kind: monaco.languages.CompletionItemKind.Function, insertText: 'task.wait(${1:time})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Task wait' },
+                  { label: 'task.spawn', kind: monaco.languages.CompletionItemKind.Function, insertText: 'task.spawn(function()\n\t${1}\nend)', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Spawn new task' },
+                  { label: 'spawn', kind: monaco.languages.CompletionItemKind.Function, insertText: 'spawn(function()\n\t${1}\nend)', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Spawn function' },
+                  { label: 'GetService', kind: monaco.languages.CompletionItemKind.Method, insertText: 'GetService("${1:ServiceName}")', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get Roblox service' },
+                  { label: 'Players', kind: monaco.languages.CompletionItemKind.Variable, insertText: 'game:GetService("Players")', detail: 'Players service' },
+                  { label: 'ReplicatedStorage', kind: monaco.languages.CompletionItemKind.Variable, insertText: 'game:GetService("ReplicatedStorage")', detail: 'ReplicatedStorage service' },
+                  { label: 'UserInputService', kind: monaco.languages.CompletionItemKind.Variable, insertText: 'game:GetService("UserInputService")', detail: 'UserInputService' },
+                  { label: 'RunService', kind: monaco.languages.CompletionItemKind.Variable, insertText: 'game:GetService("RunService")', detail: 'RunService' },
+                  { label: 'TweenService', kind: monaco.languages.CompletionItemKind.Variable, insertText: 'game:GetService("TweenService")', detail: 'TweenService' },
+                  { label: 'FindFirstChild', kind: monaco.languages.CompletionItemKind.Method, insertText: 'FindFirstChild("${1:name}")', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Find child by name' },
+                  { label: 'WaitForChild', kind: monaco.languages.CompletionItemKind.Method, insertText: 'WaitForChild("${1:name}")', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Wait for child' },
+                  { label: 'GetChildren', kind: monaco.languages.CompletionItemKind.Method, insertText: 'GetChildren()', detail: 'Get all children' },
+                  { label: 'GetDescendants', kind: monaco.languages.CompletionItemKind.Method, insertText: 'GetDescendants()', detail: 'Get all descendants' },
+                  { label: 'Destroy', kind: monaco.languages.CompletionItemKind.Method, insertText: 'Destroy()', detail: 'Destroy instance' },
+                  { label: 'Clone', kind: monaco.languages.CompletionItemKind.Method, insertText: 'Clone()', detail: 'Clone instance' },
+                  { label: 'pairs', kind: monaco.languages.CompletionItemKind.Function, insertText: 'pairs(${1:table})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Iterate over table' },
+                  { label: 'ipairs', kind: monaco.languages.CompletionItemKind.Function, insertText: 'ipairs(${1:array})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Iterate over array' },
+                  { label: 'next', kind: monaco.languages.CompletionItemKind.Function, insertText: 'next(${1:table})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get next table entry' },
+                  { label: 'tonumber', kind: monaco.languages.CompletionItemKind.Function, insertText: 'tonumber(${1:value})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Convert to number' },
+                  { label: 'tostring', kind: monaco.languages.CompletionItemKind.Function, insertText: 'tostring(${1:value})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Convert to string' },
+                  { label: 'type', kind: monaco.languages.CompletionItemKind.Function, insertText: 'type(${1:value})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get type' },
+                  { label: 'pcall', kind: monaco.languages.CompletionItemKind.Function, insertText: 'pcall(function()\n\t${1}\nend)', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Protected call' },
+                  { label: 'require', kind: monaco.languages.CompletionItemKind.Function, insertText: 'require(${1:module})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Require module' },
+                  { label: 'string.len', kind: monaco.languages.CompletionItemKind.Function, insertText: 'string.len(${1:str})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'String length' },
+                  { label: 'string.lower', kind: monaco.languages.CompletionItemKind.Function, insertText: 'string.lower(${1:str})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Convert to lowercase' },
+                  { label: 'string.upper', kind: monaco.languages.CompletionItemKind.Function, insertText: 'string.upper(${1:str})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Convert to uppercase' },
+                  { label: 'string.sub', kind: monaco.languages.CompletionItemKind.Function, insertText: 'string.sub(${1:str}, ${2:i}, ${3:j})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get substring' },
+                  { label: 'string.find', kind: monaco.languages.CompletionItemKind.Function, insertText: 'string.find(${1:str}, ${2:pattern})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Find pattern' },
+                  { label: 'string.match', kind: monaco.languages.CompletionItemKind.Function, insertText: 'string.match(${1:str}, ${2:pattern})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Match pattern' },
+                  { label: 'string.gsub', kind: monaco.languages.CompletionItemKind.Function, insertText: 'string.gsub(${1:str}, ${2:pattern}, ${3:repl})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Global substitution' },
+                  { label: 'string.format', kind: monaco.languages.CompletionItemKind.Function, insertText: 'string.format(${1:format}, ${2:...})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Format string' },
+                  { label: 'table.insert', kind: monaco.languages.CompletionItemKind.Function, insertText: 'table.insert(${1:table}, ${2:value})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Insert into table' },
+                  { label: 'table.remove', kind: monaco.languages.CompletionItemKind.Function, insertText: 'table.remove(${1:table}, ${2:pos})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Remove from table' },
+                  { label: 'table.concat', kind: monaco.languages.CompletionItemKind.Function, insertText: 'table.concat(${1:table}, ${2:sep})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Concatenate table' },
+                  { label: 'table.sort', kind: monaco.languages.CompletionItemKind.Function, insertText: 'table.sort(${1:table})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Sort table' },
+                  { label: 'math.abs', kind: monaco.languages.CompletionItemKind.Function, insertText: 'math.abs(${1:x})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Absolute value' },
+                  { label: 'math.floor', kind: monaco.languages.CompletionItemKind.Function, insertText: 'math.floor(${1:x})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Round down' },
+                  { label: 'math.ceil', kind: monaco.languages.CompletionItemKind.Function, insertText: 'math.ceil(${1:x})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Round up' },
+                  { label: 'math.random', kind: monaco.languages.CompletionItemKind.Function, insertText: 'math.random(${1:min}, ${2:max})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Random number' },
+                  { label: 'math.sqrt', kind: monaco.languages.CompletionItemKind.Function, insertText: 'math.sqrt(${1:x})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Square root' },
+                  { label: 'math.pi', kind: monaco.languages.CompletionItemKind.Constant, insertText: 'math.pi', detail: 'Pi constant' },
+                  { label: 'local', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'local ${1:variable} = ${2:value}', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Local variable' },
+                  { label: 'true', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'true', detail: 'Boolean true' },
+                  { label: 'false', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'false', detail: 'Boolean false' },
+                  { label: 'nil', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'nil', detail: 'Nil value' },
+                  { label: 'and', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'and', detail: 'Logical AND' },
+                  { label: 'or', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'or', detail: 'Logical OR' },
+                  { label: 'not', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'not ${1:value}', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Logical NOT' },
+                  { label: 'in', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'in', detail: 'In operator' },
+                  { label: 'return', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'return ${1:value}', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Return statement' },
+                  { label: 'break', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'break', detail: 'Break from loop' },
+                  { label: 'continue', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'continue', detail: 'Continue to next iteration' },
+                  { label: 'else', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'else\n\t${1}', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Else clause' },
+                  { label: 'elseif', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'elseif ${1:condition} then\n\t${2}', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Elseif clause' },
+                  { label: 'end', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'end', detail: 'End block' },
+                  { label: 'until', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'until ${1:condition}', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Until condition' },
+                  { label: 'do', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'do\n\t${1}\nend', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Do block' },
+                  { label: 'then', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'then\n\t${1}\nend', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Then block' },
+                  { label: 'if', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'if ${1:condition} then\n\t${2}\nend', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'If statement' },
+                  { label: 'if then', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'if ${1:condition} then\n\t${2}\nend', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'If-then-end statement' },
+                  { label: 'if else', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'if ${1:condition} then\n\t${2}\nelse\n\t${3}\nend', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'If-else statement' },
+                  { label: 'if elseif', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'if ${1:condition} then\n\t${2}\nelseif ${3:condition} then\n\t${4}\nelse\n\t${5}\nend', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'If-elseif-else statement' },
+                  { label: 'for', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'for ${1:i} = ${2:1}, ${3:10} do\n\t${4}\nend', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'For loop' },
+                  { label: 'for do', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'for ${1:i} = ${2:1}, ${3:10} do\n\t${4}\nend', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Numeric for loop' },
+                  { label: 'for in pairs', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'for ${1:k}, ${2:v} in pairs(${3:table}) do\n\t${4}\nend', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'For-in-pairs loop' },
+                  { label: 'for in ipairs', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'for ${1:i}, ${2:v} in ipairs(${3:array}) do\n\t${4}\nend', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'For-in-ipairs loop' },
+                  { label: 'while', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'while ${1:condition} do\n\t${2}\nend', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'While loop' },
+                  { label: 'while do', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'while ${1:condition} do\n\t${2}\nend', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'While-do loop' },
+                  { label: 'repeat', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'repeat\n\t${1}\nuntil ${2:condition}', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Repeat-until loop' },
+                  { label: 'repeat until', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'repeat\n\t${1}\nuntil ${2:condition}', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Repeat-until loop' },
+                  { label: 'function', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'function ${1:name}(${2:args})\n\t${3}\nend', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Function definition' },
+                  { label: 'local function', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'local function ${1:name}(${2:args})\n\t${3}\nend', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Local function' },
+                  { label: 'function end', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'function(${1:args})\n\t${2}\nend', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Anonymous function' },
+                  { label: 'Instance.new', kind: monaco.languages.CompletionItemKind.Function, insertText: 'Instance.new("${1:ClassName}")', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Create new instance' },
+                  { label: 'Vector3.new', kind: monaco.languages.CompletionItemKind.Function, insertText: 'Vector3.new(${1:x}, ${2:y}, ${3:z})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Create Vector3' },
+                  { label: 'Vector2.new', kind: monaco.languages.CompletionItemKind.Function, insertText: 'Vector2.new(${1:x}, ${2:y})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Create Vector2' },
+                  { label: 'Color3.new', kind: monaco.languages.CompletionItemKind.Function, insertText: 'Color3.new(${1:r}, ${2:g}, ${3:b})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Create Color3' },
+                  { label: 'CFrame.new', kind: monaco.languages.CompletionItemKind.Function, insertText: 'CFrame.new(${1:x}, ${2:y}, ${3:z})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Create CFrame' },
+                  { label: 'UDim2.new', kind: monaco.languages.CompletionItemKind.Function, insertText: 'UDim2.new(${1:xScale}, ${2:xOffset}, ${3:yScale}, ${4:yOffset})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Create UDim2' },
+                  { label: 'PivotTo', kind: monaco.languages.CompletionItemKind.Method, insertText: 'PivotTo(${1:cframe})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Set pivot of model' },
+                  { label: 'GetPivot', kind: monaco.languages.CompletionItemKind.Method, insertText: 'GetPivot()', detail: 'Get pivot of model/part' },
+                  { label: 'checkcaller', kind: monaco.languages.CompletionItemKind.Function, insertText: 'checkcaller()', detail: 'Check if called from executor thread' },
+                  { label: 'clonefunction', kind: monaco.languages.CompletionItemKind.Function, insertText: 'clonefunction(${1:func})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Clone a function' },
+                  { label: 'getfunctionhash', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getfunctionhash(${1:func})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get function hash' },
+                  { label: 'hookfunction', kind: monaco.languages.CompletionItemKind.Function, insertText: 'hookfunction(${1:original}, ${2:hook})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Hook a function' },
+                  { label: 'hookmetamethod', kind: monaco.languages.CompletionItemKind.Function, insertText: 'hookmetamethod(${1:object}, "${2:__index}", ${3:hook})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Hook a metamethod' },
+                  { label: 'iscclosure', kind: monaco.languages.CompletionItemKind.Function, insertText: 'iscclosure(${1:func})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Check if C closure' },
+                  { label: 'isexecutorclosure', kind: monaco.languages.CompletionItemKind.Function, insertText: 'isexecutorclosure(${1:func})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Check if executor closure' },
+                  { label: 'islclosure', kind: monaco.languages.CompletionItemKind.Function, insertText: 'islclosure(${1:func})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Check if Lua closure' },
+                  { label: 'newcclosure', kind: monaco.languages.CompletionItemKind.Function, insertText: 'newcclosure(${1:func})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Wrap function as C closure' },
+                  { label: 'restorefunction', kind: monaco.languages.CompletionItemKind.Function, insertText: 'restorefunction(${1:func})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Restore hooked function' },
+                  { label: 'debug.getconstant', kind: monaco.languages.CompletionItemKind.Function, insertText: 'debug.getconstant(${1:func}, ${2:index})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get function constant' },
+                  { label: 'debug.getconstants', kind: monaco.languages.CompletionItemKind.Function, insertText: 'debug.getconstants(${1:func})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get all function constants' },
+                  { label: 'debug.getproto', kind: monaco.languages.CompletionItemKind.Function, insertText: 'debug.getproto(${1:func}, ${2:index}, ${3:activated})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get function prototype' },
+                  { label: 'debug.getprotos', kind: monaco.languages.CompletionItemKind.Function, insertText: 'debug.getprotos(${1:func})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get all function prototypes' },
+                  { label: 'debug.getstack', kind: monaco.languages.CompletionItemKind.Function, insertText: 'debug.getstack(${1:level}, ${2:index})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get stack values' },
+                  { label: 'debug.getupvalue', kind: monaco.languages.CompletionItemKind.Function, insertText: 'debug.getupvalue(${1:func}, ${2:index})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get function upvalue' },
+                  { label: 'debug.getupvalues', kind: monaco.languages.CompletionItemKind.Function, insertText: 'debug.getupvalues(${1:func})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get all function upvalues' },
+                  { label: 'debug.setconstant', kind: monaco.languages.CompletionItemKind.Function, insertText: 'debug.setconstant(${1:func}, ${2:index}, ${3:value})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Set function constant' },
+                  { label: 'debug.setstack', kind: monaco.languages.CompletionItemKind.Function, insertText: 'debug.setstack(${1:level}, ${2:index}, ${3:value})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Set stack value' },
+                  { label: 'debug.setupvalue', kind: monaco.languages.CompletionItemKind.Function, insertText: 'debug.setupvalue(${1:func}, ${2:index}, ${3:value})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Set function upvalue' },
+                  { label: 'Drawing.new', kind: monaco.languages.CompletionItemKind.Function, insertText: 'Drawing.new("${1:type}")', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Create new drawing object' },
+                  { label: 'cleardrawcache', kind: monaco.languages.CompletionItemKind.Function, insertText: 'cleardrawcache()', detail: 'Clear all drawing objects' },
+                  { label: 'getrenderproperty', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getrenderproperty(${1:drawing}, "${2:property}")', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get drawing property' },
+                  { label: 'isrenderobj', kind: monaco.languages.CompletionItemKind.Function, insertText: 'isrenderobj(${1:object})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Check if drawing object' },
+                  { label: 'setrenderproperty', kind: monaco.languages.CompletionItemKind.Function, insertText: 'setrenderproperty(${1:drawing}, "${2:property}", ${3:value})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Set drawing property' },
+                  { label: 'base64decode', kind: monaco.languages.CompletionItemKind.Function, insertText: 'base64decode(${1:data})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Decode base64 string' },
+                  { label: 'base64encode', kind: monaco.languages.CompletionItemKind.Function, insertText: 'base64encode(${1:data})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Encode to base64' },
+                  { label: 'lz4compress', kind: monaco.languages.CompletionItemKind.Function, insertText: 'lz4compress(${1:data})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Compress with LZ4' },
+                  { label: 'lz4decompress', kind: monaco.languages.CompletionItemKind.Function, insertText: 'lz4decompress(${1:data})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Decompress LZ4' },
+                  { label: 'getgc', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getgc(${1:includeTables})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get garbage collected objects' },
+                  { label: 'getgenv', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getgenv()', detail: 'Get executor environment' },
+                  { label: 'getreg', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getreg()', detail: 'Get Lua registry' },
+                  { label: 'getrenv', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getrenv()', detail: 'Get Roblox environment' },
+                  { label: 'filtergc', kind: monaco.languages.CompletionItemKind.Function, insertText: 'filtergc("${1:type}", ${2:options}, ${3:returnOne})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Filter GC objects' },
+                  { label: 'appendfile', kind: monaco.languages.CompletionItemKind.Function, insertText: 'appendfile("${1:path}", ${2:content})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Append to file' },
+                  { label: 'delfile', kind: monaco.languages.CompletionItemKind.Function, insertText: 'delfile("${1:path}")', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Delete file' },
+                  { label: 'delfolder', kind: monaco.languages.CompletionItemKind.Function, insertText: 'delfolder("${1:path}")', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Delete folder' },
+                  { label: 'getcustomasset', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getcustomasset("${1:path}")', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get custom asset URL' },
+                  { label: 'isfile', kind: monaco.languages.CompletionItemKind.Function, insertText: 'isfile("${1:path}")', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Check if file exists' },
+                  { label: 'isfolder', kind: monaco.languages.CompletionItemKind.Function, insertText: 'isfolder("${1:path}")', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Check if folder exists' },
+                  { label: 'listfiles', kind: monaco.languages.CompletionItemKind.Function, insertText: 'listfiles("${1:path}")', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'List files in directory' },
+                  { label: 'loadfile', kind: monaco.languages.CompletionItemKind.Function, insertText: 'loadfile("${1:path}")', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Load file as function' },
+                  { label: 'makefolder', kind: monaco.languages.CompletionItemKind.Function, insertText: 'makefolder("${1:path}")', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Create folder' },
+                  { label: 'readfile', kind: monaco.languages.CompletionItemKind.Function, insertText: 'readfile("${1:path}")', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Read file contents' },
+                  { label: 'writefile', kind: monaco.languages.CompletionItemKind.Function, insertText: 'writefile("${1:path}", ${2:data})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Write to file' },
+                  { label: 'cloneref', kind: monaco.languages.CompletionItemKind.Function, insertText: 'cloneref(${1:instance})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Clone instance reference' },
+                  { label: 'compareinstances', kind: monaco.languages.CompletionItemKind.Function, insertText: 'compareinstances(${1:inst1}, ${2:inst2})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Compare instances' },
+                  { label: 'fireclickdetector', kind: monaco.languages.CompletionItemKind.Function, insertText: 'fireclickdetector(${1:detector}, ${2:distance})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Fire click detector' },
+                  { label: 'fireproximityprompt', kind: monaco.languages.CompletionItemKind.Function, insertText: 'fireproximityprompt(${1:prompt})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Fire proximity prompt' },
+                  { label: 'firetouchinterest', kind: monaco.languages.CompletionItemKind.Function, insertText: 'firetouchinterest(${1:part1}, ${2:part2}, ${3:toggle})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Fire touch event' },
+                  { label: 'getcallbackvalue', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getcallbackvalue(${1:instance}, "${2:property}")', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get callback value' },
+                  { label: 'gethui', kind: monaco.languages.CompletionItemKind.Function, insertText: 'gethui()', detail: 'Get hidden UI container' },
+                  { label: 'getinstances', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getinstances()', detail: 'Get all instances' },
+                  { label: 'getnilinstances', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getnilinstances()', detail: 'Get nil-parented instances' },
+                  { label: 'getnamecallmethod', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getnamecallmethod()', detail: 'Get namecall method' },
+                  { label: 'getrawmetatable', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getrawmetatable(${1:object})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get raw metatable' },
+                  { label: 'isreadonly', kind: monaco.languages.CompletionItemKind.Function, insertText: 'isreadonly(${1:table})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Check if table readonly' },
+                  { label: 'setrawmetatable', kind: monaco.languages.CompletionItemKind.Function, insertText: 'setrawmetatable(${1:object}, ${2:metatable})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Set raw metatable' },
+                  { label: 'setreadonly', kind: monaco.languages.CompletionItemKind.Function, insertText: 'setreadonly(${1:table}, ${2:state})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Set table readonly' },
+                  { label: 'identifyexecutor', kind: monaco.languages.CompletionItemKind.Function, insertText: 'identifyexecutor()', detail: 'Get executor name and version' },
+                  { label: 'printidentity', kind: monaco.languages.CompletionItemKind.Function, insertText: 'printidentity()', detail: 'Print current thread identity' },
+                  { label: 'request', kind: monaco.languages.CompletionItemKind.Function, insertText: 'request({Url = "${1:url}", Method = "${2:GET}"})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'HTTP request' },
+                  { label: 'gethiddenproperty', kind: monaco.languages.CompletionItemKind.Function, insertText: 'gethiddenproperty(${1:instance}, "${2:property}")', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get hidden property' },
+                  { label: 'getthreadidentity', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getthreadidentity()', detail: 'Get thread identity level' },
+                  { label: 'isscriptable', kind: monaco.languages.CompletionItemKind.Function, insertText: 'isscriptable(${1:instance}, "${2:property}")', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Check if property scriptable' },
+                  { label: 'sethiddenproperty', kind: monaco.languages.CompletionItemKind.Function, insertText: 'sethiddenproperty(${1:instance}, "${2:property}", ${3:value})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Set hidden property' },
+                  { label: 'setscriptable', kind: monaco.languages.CompletionItemKind.Function, insertText: 'setscriptable(${1:instance}, "${2:property}", ${3:state})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Set property scriptable' },
+                  { label: 'setthreadidentity', kind: monaco.languages.CompletionItemKind.Function, insertText: 'setthreadidentity(${1:level})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Set thread identity level' },
+                  { label: 'getcallingscript', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getcallingscript()', detail: 'Get calling script' },
+                  { label: 'getloadedmodules', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getloadedmodules()', detail: 'Get loaded modules' },
+                  { label: 'getrunningscripts', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getrunningscripts()', detail: 'Get running scripts' },
+                  { label: 'getscriptbytecode', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getscriptbytecode(${1:script})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get script bytecode' },
+                  { label: 'getscriptclosure', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getscriptclosure(${1:script})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get script closure' },
+                  { label: 'getscripthash', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getscripthash(${1:script})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get script hash' },
+                  { label: 'getscripts', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getscripts()', detail: 'Get all scripts' },
+                  { label: 'getsenv', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getsenv(${1:script})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get script environment' },
+                  { label: 'firesignal', kind: monaco.languages.CompletionItemKind.Function, insertText: 'firesignal(${1:signal}, ${2:...})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Fire signal' },
+                  { label: 'getconnections', kind: monaco.languages.CompletionItemKind.Function, insertText: 'getconnections(${1:signal})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Get signal connections' },
+                  { label: 'replicatesignal', kind: monaco.languages.CompletionItemKind.Function, insertText: 'replicatesignal(${1:signal}, ${2:...})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Replicate signal to server' },
+                ];
+                
+                return { suggestions: suggestions };
+              }
+            });
     
             const editor = monaco.editor.create(document.getElementById('editor-container'), {
               value: '-- those who grow... ',
@@ -1427,9 +1766,12 @@
               fontSize: 14,
               minimap: { enabled: settings.minimap, side: 'right', maxColumn: 60 },
               folding: settings.folding,
+              stickyScroll: { enabled: settings.sticky_scroll },
+              cursorSmoothCaretAnimation: settings.smooth_caret ? 'on' : 'off',
               scrollBeyondLastLine: false,
               roundedSelection: true,
-              padding: { top: 10, bottom: 10 }
+              padding: { top: 10, bottom: 10 },
+              acceptSuggestionOnEnter: 'off'
             });
     
             function apply_settings() {
@@ -1439,6 +1781,10 @@
               editor.updateOptions({ minimap: { enabled: settings.minimap } });
     
               editor.updateOptions({ folding: settings.folding });
+              
+              editor.updateOptions({ stickyScroll: { enabled: settings.sticky_scroll } });
+              
+              editor.updateOptions({ cursorSmoothCaretAnimation: settings.smooth_caret ? 'on' : 'off' });
     
               const bottom_bar = document.querySelector('.bottom-bar');
               const attach_btn = document.querySelector('.action-button.attach');
@@ -1464,10 +1810,23 @@
               document.getElementById('setting-flip-controls').checked = settings.flip_controls;
               document.getElementById('setting-minimap').checked = settings.minimap;
               document.getElementById('setting-folding').checked = settings.folding;
+              document.getElementById('setting-sticky-scroll').checked = settings.sticky_scroll;
+              document.getElementById('setting-smooth-caret').checked = settings.smooth_caret;
+              document.getElementById('setting-warn-execute').checked = settings.warn_execute_unattached;
               document.getElementById('setting-autosave-exit').checked = settings.autosave_exit;
               document.getElementById('setting-autosave-change').checked = settings.autosave_change;
               document.getElementById('setting-autosave-interval').checked = settings.autosave_interval;
               document.getElementById('setting-autosave-seconds').value = settings.autosave_seconds;
+              document.getElementById('setting-console-panel').checked = settings.console_panel;
+              
+              const console_panel = document.getElementById('console-panel');
+              if (settings.console_panel) {
+                console_panel.classList.add('show');
+                start_log_watcher();
+              } else {
+                console_panel.classList.remove('show');
+                stop_log_watcher();
+              }
             }
     
             function setup_settings_listeners() {
@@ -1517,6 +1876,23 @@
                 save_settings();
               });
               
+              document.getElementById('setting-sticky-scroll').addEventListener('change', (e) => {
+                settings.sticky_scroll = e.target.checked;
+                editor.updateOptions({ stickyScroll: { enabled: settings.sticky_scroll } });
+                save_settings();
+              });
+              
+              document.getElementById('setting-smooth-caret').addEventListener('change', (e) => {
+                settings.smooth_caret = e.target.checked;
+                editor.updateOptions({ cursorSmoothCaretAnimation: settings.smooth_caret ? 'on' : 'off' });
+                save_settings();
+              });
+              
+              document.getElementById('setting-warn-execute').addEventListener('change', (e) => {
+                settings.warn_execute_unattached = e.target.checked;
+                save_settings();
+              });
+              
               document.getElementById('setting-autosave-exit').addEventListener('change', (e) => {
                 settings.autosave_exit = e.target.checked;
                 save_settings();
@@ -1545,10 +1921,135 @@
                   start_autosave_interval();
                 }
               });
+              
+              // find the epstein files
+              document.getElementById('setting-console-panel').addEventListener('change', (e) => {
+                settings.console_panel = e.target.checked;
+                const console_panel = document.getElementById('console-panel');
+                if (settings.console_panel) {
+                  console_panel.classList.add('show');
+                  start_log_watcher();
+                } else {
+                  console_panel.classList.remove('show');
+                  stop_log_watcher();
+                }
+                save_settings();
+              });
             }
+    
+            const logs_folder = app.isPackaged
+              ? path.join(process.resourcesPath, '..', 'logs')
+              : path.join(__dirname, 'logs');
+            
+            if (!fs.existsSync(logs_folder)) {
+              fs.mkdirSync(logs_folder);
+            }
+            
+            let log_watchers = [];
+            let current_log_files = [];
+            let ui_start_time = Date.now();
     
             apply_settings();
             setup_settings_listeners();
+            
+            function start_log_watcher() {
+              stop_log_watcher();
+              scan_log_folder();
+              
+              const folder_watcher = fs.watch(logs_folder, (eventType, filename) => {
+                if (filename && filename.endsWith('.txt')) {
+                  setTimeout(() => scan_log_folder(), 100);
+                }
+              });
+              
+              log_watchers.push(folder_watcher);
+            }
+            
+            function stop_log_watcher() {
+              log_watchers.forEach(watcher => {
+                try {
+                  watcher.close();
+                } catch (err) {}
+              });
+              log_watchers = [];
+            }
+            
+            function scan_log_folder() {
+              try {
+                const files = fs.readdirSync(logs_folder)
+                  .filter(file => {
+                    if (!file.endsWith('.txt')) return false;
+                    const file_path = path.join(logs_folder, file);
+                    const stats = fs.statSync(file_path);
+                    return stats.mtimeMs >= ui_start_time;
+                  })
+                  .sort((a, b) => {
+                    const statA = fs.statSync(path.join(logs_folder, a));
+                    const statB = fs.statSync(path.join(logs_folder, b));
+                    return statB.mtime - statA.mtime;
+                  });
+                
+                if (files.length === 0) {
+                  update_console_content('<div class="console-log-entry">Websocket started on port 6969</div>');
+                  return;
+                }
+                
+                const latest_file = files[0];
+                if (current_log_files.length === 0 || current_log_files[0] !== latest_file) {
+                  current_log_files = files;
+                  watch_log_file(latest_file);
+                }
+              } catch (err) {
+                console.error('Error scanning log folder:', err);
+              }
+            }
+            
+            function watch_log_file(filename) {
+              const file_path = path.join(logs_folder, filename);
+              read_and_display_log(file_path, filename);
+              
+              const file_watcher = fs.watch(file_path, (eventType) => {
+                if (eventType === 'change') {
+                  read_and_display_log(file_path, filename);
+                }
+              });
+              
+              log_watchers.push(file_watcher);
+            }
+            
+            // expose the chocosploit files
+            function read_and_display_log(file_path, filename) {
+              try {
+                const content = fs.readFileSync(file_path, 'utf-8');
+                const lines = content.split('\n').filter(line => line.trim());
+                
+                let html = '';
+                
+                if (lines.length === 0) {
+                  html += '<div class="console-empty">Log file is empty</div>';
+                } else {
+                  lines.forEach(line => {
+                    const timestamp = new Date().toLocaleTimeString();
+                    html += `<div class="console-log-entry">${line}</div>`;
+                  });
+                }
+                
+                update_console_content(html);
+              } catch (err) {
+                console.error('Error reading log file:', err);
+              }
+            }
+            
+            function update_console_content(html) {
+              const console_content = document.getElementById('console-content');
+              const was_at_bottom = console_content.scrollHeight - console_content.scrollTop <= console_content.clientHeight + 50;
+              
+              console_content.innerHTML = html;
+              
+              if (was_at_bottom) {
+                console_content.scrollTop = console_content.scrollHeight;
+              }
+            }
             
             let autosave_interval_timer = null;
             
@@ -1723,6 +2224,7 @@
                 const tab_el = document.createElement('div');
                 tab_el.className = `tab${tab.id === active_tab_id ? ' active' : ''}`;
                 tab_el.dataset.tabId = tab.id;
+                tab_el.draggable = true;
                 tab_el.innerHTML = `
                   <i class="fa-solid fa-scroll tab-icon"></i>
                   <span class="tab-name">${tab.name}</span>
@@ -1750,6 +2252,52 @@
     
                 tab_el.querySelector('.tab-close').addEventListener('click', (e) => {
                   close_tab(tab.id, e);
+                });
+                
+                // Drag and drop functionality
+                tab_el.addEventListener('dragstart', (e) => {
+                  e.dataTransfer.effectAllowed = 'move';
+                  e.dataTransfer.setData('text/plain', tab.id);
+                  tab_el.style.opacity = '0.5';
+                });
+                
+                tab_el.addEventListener('dragend', (e) => {
+                  tab_el.style.opacity = '1';
+                  document.querySelectorAll('.tab').forEach(t => {
+                    t.classList.remove('drag-over');
+                  });
+                });
+                
+                tab_el.addEventListener('dragover', (e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = 'move';
+                  const dragging_tab = document.querySelector('.tab[style*="opacity: 0.5"]');
+                  if (dragging_tab && dragging_tab !== tab_el) {
+                    tab_el.classList.add('drag-over');
+                  }
+                });
+                
+                tab_el.addEventListener('dragleave', (e) => {
+                  tab_el.classList.remove('drag-over');
+                });
+                
+                tab_el.addEventListener('drop', (e) => {
+                  e.preventDefault();
+                  tab_el.classList.remove('drag-over');
+                  
+                  const drag_tab_id = parseInt(e.dataTransfer.getData('text/plain'));
+                  const drop_tab_id = parseInt(tab_el.dataset.tabId);
+                  
+                  if (drag_tab_id !== drop_tab_id) {
+                    const drag_index = tabs.findIndex(t => t.id === drag_tab_id);
+                    const drop_index = tabs.findIndex(t => t.id === drop_tab_id);
+                    
+                    const [dragged_tab] = tabs.splice(drag_index, 1);
+                    tabs.splice(drop_index, 0, dragged_tab);
+                    
+                    render_tabs();
+                    save_tabs_to_cache();
+                  }
                 });
     
                 tab_bar.appendChild(tab_el);
@@ -1941,6 +2489,10 @@
                 const script_path = path.join(scripts_folder, script_name);
                 const content = fs.readFileSync(script_path, 'utf-8');
                 if (content.trim()) {
+                  if (!is_attached && settings.warn_execute_unattached) {
+                    alert('Not attached! Please attach to Roblox first.');
+                    return;
+                  }
                   ipcRenderer.send('execute', content);
                 }
               } catch (err) {
@@ -2122,6 +2674,10 @@
             document.querySelector('.action-button:first-child').addEventListener('click', () => {
               const script = editor.getValue();
               if (script.trim()) {
+                if (!is_attached && settings.warn_execute_unattached) {
+                  alert('Not attached! Please attach first.');
+                  return;
+                }
                 ipcRenderer.send('execute', script);
               } else {
                 console.log('Editor is empty! Please write a script first.');
