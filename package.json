@@ -1,0 +1,36 @@
+{
+  "name": "chocotassium",
+  "version": "1.0.0",
+  "description": "chocosploit but potassium iykyk 🐀",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "com.chocotassium.app",
+    "productName": "Chocotassium",
+    "win": {
+      "target": "nsis",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^39.2.3",
+    "electron-builder": "^26.0.12"
+  },
+  "dependencies": {
+    "@electron/remote": "^2.1.3",
+    "find-process": "^2.0.0",
+    "monaco-editor": "^0.55.1",
+    "ws": "^8.18.3"
+  }
+}

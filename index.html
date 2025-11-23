@@ -1,0 +1,2505 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          
+          html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: transparent;
+          }
+          
+          body {
+            -webkit-app-region: drag;
+          }
+          
+          .window-container {
+            width: 100%;
+            height: 100%;
+            background: #141515;
+            border: none;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border-radius: 12px;
+          }
+          
+          .titlebar {
+            height: 40px;
+            background: #141515;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-left: 10px;
+            padding-right: 0;
+            -webkit-app-region: drag;
+            position: relative;
+            border-bottom: 1px solid rgba(91, 91, 91, 0.3);
+          }
+          
+          .titlebar-text {
+            color: #9f9f9f;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+          }
+          
+          .navigation-icons {
+            display: flex;
+            gap: 8px;
+            -webkit-app-region: no-drag;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+          }
+          
+          .nav-button {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: default;
+            transition: background 0.1s;
+            border: none;
+            background: transparent;
+            color: #9f9f9f;
+            font-size: 15px;
+            border-radius: 0px;
+            outline: none;
+            border-bottom: 2px solid transparent;
+          }
+          
+          .nav-button.active {
+            color: white;
+            border-bottom-color: white;
+          }
+          
+          .nav-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+          }
+          
+          .nav-button:active {
+            background: rgba(255, 255, 255, 0.05);
+          }
+          
+          .window-controls {
+            display: flex;
+            height: 100%;
+            -webkit-app-region: no-drag;
+          }
+          
+          .window-button {
+            width: 46px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: default;
+            transition: background 0.1s;
+            border: none;
+            background: transparent;
+            color: #9f9f9f;
+            font-family: 'Segoe MDL2 Assets', 'Segoe UI Symbol';
+            font-size: 13px;
+            padding: 0;
+            outline: none;
+          }
+          
+          .window-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+          }
+          
+          .window-button.close:hover {
+            background: #c42b1c;
+            color: white;
+          }
+          
+          .window-button:active {
+            background: rgba(255, 255, 255, 0.05);
+          }
+          
+          .window-button.close:active {
+            background: #a52317;
+          }
+          
+          .content {
+            flex: 1;
+            display: flex;
+            padding: 3px;
+            gap: 0;
+            -webkit-app-region: no-drag;
+            position: relative;
+          }
+          
+          .editor-wrapper {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+          }
+          
+          .script-box {
+            width: 200px;
+            background: #1e1e1e;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #2d2d2d;
+          }
+          
+          .script-box-header {
+            padding: 8px;
+            border-bottom: 1px solid #2d2d2d;
+            display: flex;
+            align-items: center;
+            gap: 0;
+            background: #1a1a1a;
+          }
+          
+          .search-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: #202020;
+            border-radius: 4px;
+            padding: 0 10px;
+            gap: 8px;
+          }
+          
+          .search-icon {
+            color: #6b6b6b;
+            font-size: 12px;
+          }
+          
+          .script-search {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 6px 0;
+            color: #cccccc;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 12px;
+            outline: none;
+          }
+          
+          .script-search::placeholder {
+            color: #6b6b6b;
+          }
+          
+          .script-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px;
+            background: #1a1a1a;
+          }
+          
+          .script-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            color: #cccccc;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.1s;
+            -webkit-app-region: no-drag;
+          }
+          
+          .script-item:hover {
+            background: #2d2d2d;
+          }
+          
+          .script-item i {
+            color: #6b9dcc;
+            font-size: 13px;
+          }
+          
+          .script-list::-webkit-scrollbar {
+            width: 8px;
+          }
+          
+          .script-list::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          
+          .script-list::-webkit-scrollbar-thumb {
+            background: #3d3d3d;
+            border-radius: 4px;
+          }
+          
+          .script-list::-webkit-scrollbar-thumb:hover {
+            background: #4d4d4d;
+          }
+          
+          .tab-bar {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            padding: 6px 0 0 3px;
+            background: transparent;
+            -webkit-app-region: no-drag;
+            overflow-x: auto;
+            overflow-y: hidden;
+            flex-wrap: nowrap;
+            scrollbar-width: thin;
+            scrollbar-color: #3d3d3d transparent;
+          }
+          
+          .tab-bar::-webkit-scrollbar {
+            height: 10px;
+          }
+          
+          .tab-bar::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          
+          .tab-bar::-webkit-scrollbar-thumb {
+            background: #3d3d3d;
+            border-radius: 5px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+          }
+          
+          .tab-bar::-webkit-scrollbar-thumb:hover {
+            background: #4d4d4d;
+            background-clip: content-box;
+          }
+          
+          .tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: #141515;
+            border-radius: 4px 4px 0 0;
+            cursor: pointer;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 13px;
+            color: #858585;
+            transition: background 0.1s;
+            border: none;
+            outline: none;
+            flex-shrink: 0;
+            white-space: nowrap;
+            user-select: none;
+          }
+          
+          .tab.active {
+            background: #1e1e1e;
+            color: #bebebe;
+          }
+          
+          .tab:hover:not(.active) {
+            background: #4a4a4a;
+          }
+          
+          .tab-icon {
+            font-size: 13px;
+          }
+          
+          .tab-close {
+            margin-left: 6px;
+            font-size: 13px;
+            opacity: 0.7;
+            transition: opacity 0.1s;
+          }
+          
+          .tab-close:hover {
+            opacity: 1;
+          }
+          
+          .new-tab-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: transparent;
+            border: none;
+            border-radius: 3px;
+            color: #6b6b6b;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.1s;
+            outline: none;
+            margin-left: -4px;
+            flex-shrink: 0;
+          }
+          
+          .new-tab-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+          }
+          
+          #editor-container {
+            flex: 1;
+            width: 100%;
+            overflow: hidden;
+          }
+          
+          .bottom-bar {
+            height: 42px;
+            background: #141515;
+            display: flex;
+            align-items: center;
+            padding: 0 3px;
+            padding-right: 13px;
+            gap: 6px;
+            -webkit-app-region: no-drag;
+          }
+          
+          .action-button {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            background: transparent;
+            border: 1px solid #323232;
+            border-radius: 4px;
+            color: #cccccc;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 13px;
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.1s;
+            outline: none;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+          }
+          
+          .action-button:hover {
+            background: #2d2d2d;
+            border-color: #4d4d4d;
+          }
+          
+          .action-button:active {
+            background: #1d1d1d;
+          }
+          
+          .action-button i {
+            font-size: 13px;
+          }
+          
+          h1 {
+            color: white;
+            -webkit-app-region: no-drag;
+          }
+          
+          .resize-handle {
+            display: none;
+          }
+          
+          .settings-page {
+            flex: 1;
+            background: #141515;
+            overflow-y: auto;
+            -webkit-app-region: no-drag;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 10;
+          }
+          
+          .settings-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px 20px;
+          }
+          
+          .settings-title {
+            color: #ffffff;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            -webkit-app-region: no-drag;
+          }
+          
+          .settings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+          }
+          
+          .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: transparent;
+            border-bottom: 1px solid #2d2d2d;
+            transition: background 0.1s;
+          }
+          
+          .setting-item:hover {
+            background: #1a1a1a;
+          }
+          
+          .setting-info {
+            flex: 1;
+          }
+          
+          .setting-name {
+            color: #ffffff;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+          }
+          
+          .setting-description {
+            color: #858585;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 12px;
+          }
+          
+          .checkbox-container {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            -webkit-app-region: no-drag;
+          }
+          
+          .checkbox-container input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+          }
+          
+          .checkmark {
+            width: 18px;
+            height: 18px;
+            background-color: transparent;
+            border: 2px solid #5b5b5b;
+            border-radius: 3px;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          
+          .checkbox-container:hover .checkmark {
+            border-color: #7b7b7b;
+          }
+          
+          .checkbox-container input:checked ~ .checkmark {
+            background-color: #ffffff;
+            border-color: #ffffff;
+          }
+          
+          .checkmark:after {
+            content: "";
+            display: none;
+            width: 4px;
+            height: 8px;
+            border: solid #141515;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            margin-top: -2px;
+          }
+          
+          .checkbox-container input:checked ~ .checkmark:after {
+            display: block;
+          }
+          
+          .settings-page::-webkit-scrollbar {
+            width: 8px;
+          }
+          
+          .settings-page::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          
+          .settings-page::-webkit-scrollbar-thumb {
+            background: #3d3d3d;
+            border-radius: 4px;
+          }
+          
+          .settings-page::-webkit-scrollbar-thumb:hover {
+            background: #4d4d4d;
+          }
+          
+          .hub-page {
+            flex: 1;
+            background: #141515;
+            overflow: hidden;
+            -webkit-app-region: no-drag;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+          }
+          
+          .hub-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid #2d2d2d;
+            background: #141515;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            transition: transform 0.3s ease-in-out;
+          }
+          
+          .hub-header.hidden {
+            transform: translateY(-100%);
+          }
+          
+          .hub-title {
+            color: #ffffff;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+          }
+          
+          .hub-search-bar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+          }
+          
+          .hub-search-input {
+            flex: 1;
+            background: #202020;
+            border: 1px solid #3d3d3d;
+            border-radius: 6px;
+            padding: 10px 14px;
+            color: #cccccc;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+          }
+          
+          .hub-search-input:focus {
+            border-color: #6b9dcc;
+          }
+          
+          .hub-search-input::placeholder {
+            color: #6b6b6b;
+          }
+          
+          .hub-search-btn {
+            padding: 10px 20px;
+            background: #6b9dcc;
+            border: none;
+            border-radius: 6px;
+            color: #ffffff;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          
+          .hub-search-btn:hover {
+            background: #5a8ab5;
+          }
+          
+          .hub-search-btn:active {
+            background: #4a7a9f;
+          }
+          
+          .hub-filters {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+          }
+          
+          .hub-filter-btn {
+            padding: 6px 12px;
+            background: transparent;
+            border: 1px solid #3d3d3d;
+            border-radius: 4px;
+            color: #9f9f9f;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          }
+          
+          .hub-filter-btn:hover {
+            background: #2d2d2d;
+            border-color: #4d4d4d;
+          }
+          
+          .hub-filter-btn.active {
+            background: #6b9dcc;
+            border-color: #6b9dcc;
+            color: #ffffff;
+          }
+          
+          .hub-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 30px;
+            padding-top: 180px;
+          }
+          
+          .hub-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            color: #6b6b6b;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            gap: 12px;
+          }
+          
+          .hub-loading i {
+            animation: spin 1s linear infinite;
+          }
+          
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          
+          .hub-error {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            color: #c42b1c;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            gap: 12px;
+          }
+          
+          .hub-scripts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+          }
+          
+          .hub-script-card {
+            background: #141515;
+            border: 1px solid #2d2d2d;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.2s;
+            cursor: pointer;
+          }
+          
+          .hub-script-card:hover {
+            border-color: #4d4d4d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+          }
+          
+          .hub-script-thumbnail {
+            width: 100%;
+            height: 160px;
+            background: #141515;
+            object-fit: cover;
+            display: block;
+          }
+          
+          .hub-script-info {
+            padding: 12px;
+          }
+          
+          .hub-script-title {
+            color: #ffffff;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          
+          .hub-script-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 12px;
+          }
+          
+          .hub-script-author,
+          .hub-script-date,
+          .hub-script-game {
+            color: #858585;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          }
+          
+          .hub-script-author i,
+          .hub-script-date i,
+          .hub-script-game i {
+            color: #6b6b6b;
+            font-size: 11px;
+          }
+          
+          .hub-script-badges {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+          }
+          
+          .hub-script-badge {
+            padding: 2px 8px;
+            background: #2d2d2d;
+            border-radius: 3px;
+            color: #9f9f9f;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 500;
+          }
+          
+          .hub-script-badge.verified {
+            background: #4d8c4e;
+            color: #ffffff;
+          }
+          
+          .hub-script-badge.universal {
+            background: #6b9dcc;
+            color: #ffffff;
+          }
+          
+          .hub-script-badge.patched {
+            background: #c42b1c;
+            color: #ffffff;
+          }
+          
+          .hub-script-actions {
+            display: flex;
+            gap: 8px;
+          }
+          
+          .hub-script-btn {
+            flex: 1;
+            padding: 8px 12px;
+            background: transparent;
+            border: 1px solid #3d3d3d;
+            border-radius: 4px;
+            color: #cccccc;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+          }
+          
+          .hub-script-btn:hover {
+            background: #2d2d2d;
+            border-color: #4d4d4d;
+          }
+          
+          .hub-script-btn.primary {
+            background: #6b9dcc;
+            border-color: #6b9dcc;
+            color: #ffffff;
+          }
+          
+          .hub-script-btn.primary:hover {
+            background: #5a8ab5;
+            border-color: #5a8ab5;
+          }
+          
+          .hub-content::-webkit-scrollbar {
+            width: 8px;
+          }
+          
+          .hub-content::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          
+          .hub-content::-webkit-scrollbar-thumb {
+            background: #3d3d3d;
+            border-radius: 4px;
+          }
+          
+          .hub-content::-webkit-scrollbar-thumb:hover {
+            background: #4d4d4d;
+          }
+          
+          .hub-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 20px;
+            margin-top: 20px;
+          }
+          
+          .hub-page-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid #3d3d3d;
+            border-radius: 4px;
+            color: #cccccc;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+          }
+          
+          .hub-page-btn:hover:not(:disabled) {
+            background: #2d2d2d;
+            border-color: #4d4d4d;
+          }
+          
+          .hub-page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+          
+          .hub-page-info {
+            color: #858585;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 13px;
+          }
+
+          .tab-context-menu {
+            position: fixed;
+            background: #252525;
+            border: 1px solid #3d3d3d;
+            border-radius: 4px;
+            padding: 4px 0;
+            z-index: 10000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            min-width: 120px;
+            display: none;
+          }
+
+          .tab-context-menu.show {
+            display: block;
+          }
+
+          .tab-context-menu-item {
+            padding: 8px 12px;
+            color: #cccccc;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.1s;
+          }
+
+          .tab-context-menu-item:hover {
+            background: #2d2d2d;
+          }
+          
+          .script-context-menu {
+            position: fixed;
+            background: #252525;
+            border: 1px solid #3d3d3d;
+            border-radius: 4px;
+            padding: 4px 0;
+            z-index: 10000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            min-width: 140px;
+            display: none;
+          }
+
+          .script-context-menu.show {
+            display: block;
+          }
+
+          .script-context-menu-item {
+            padding: 8px 12px;
+            color: #cccccc;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+
+          .script-context-menu-item:hover {
+            background: #2d2d2d;
+          }
+          
+          .script-context-menu-item.danger:hover {
+            background: #c42b1c;
+            color: #ffffff;
+          }
+          
+          .rename-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+          }
+          
+          .rename-dialog.show {
+            display: flex;
+          }
+          
+          .rename-dialog-box {
+            background: #252525;
+            border: 1px solid #3d3d3d;
+            border-radius: 6px;
+            padding: 20px;
+            min-width: 300px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+          }
+          
+          .rename-dialog-title {
+            color: #ffffff;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+          }
+          
+          .rename-dialog-input {
+            width: 100%;
+            background: #202020;
+            border: 1px solid #3d3d3d;
+            border-radius: 4px;
+            padding: 8px 12px;
+            color: #cccccc;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 13px;
+            outline: none;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+          }
+          
+          .rename-dialog-input:focus {
+            border-color: #6b9dcc;
+          }
+          
+          .rename-dialog-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+          }
+          
+          .rename-dialog-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid #3d3d3d;
+            border-radius: 4px;
+            color: #cccccc;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+          }
+          
+          .rename-dialog-btn:hover {
+            background: #2d2d2d;
+            border-color: #4d4d4d;
+          }
+          
+          .rename-dialog-btn.primary {
+            background: #6b9dcc;
+            border-color: #6b9dcc;
+            color: #ffffff;
+          }
+          
+          .rename-dialog-btn.primary:hover {
+            background: #5a8ab5;
+            border-color: #5a8ab5;
+          }
+          
+          .hub-disclaimer {
+            color: #6b6b6b;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 11px;
+            font-style: italic;
+            margin-left: auto;
+          }
+          
+          .hub-disclaimer a {
+            color: #6b9dcc;
+            text-decoration: none;
+          }
+          
+          .hub-disclaimer a:hover {
+            text-decoration: underline;
+          }
+          
+          .setting-number-input {
+            width: 80px;
+            background: #202020;
+            border: 1px solid #3d3d3d;
+            border-radius: 4px;
+            padding: 8px 12px;
+            color: #cccccc;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 13px;
+            outline: none;
+            text-align: center;
+          }
+          
+          .setting-number-input:focus {
+            border-color: #6b9dcc;
+          }
+    </style>
+</head>
+
+<body>
+    <div class="window-container">
+        <div class="titlebar">
+            <span class="titlebar-text">Chocosploit</span>
+            <div class="navigation-icons">
+                <button class="nav-button active" id="nav-editor"><i class="fa-solid fa-code"></i></button>
+                <button class="nav-button" id="nav-settings"><i class="fa-solid fa-wrench"></i></button>
+                <button class="nav-button" id="nav-hub"><i class="fa-solid fa-earth-americas"></i></button>
+            </div>
+            <div class="window-controls">
+                <button class="window-button minimize" id="minimize-btn">―</button>
+                <button class="window-button maximize" id="maximize-btn">□</button>
+                <button class="window-button close" id="close-btn">✕</button>
+            </div>
+        </div>
+        <div class="content">
+            <div class="editor-wrapper" id="editor-page">
+                <div class="tab-bar">
+                    <div class="tab active" data-tab-id="0">
+                        <i class="fa-solid fa-scroll tab-icon"></i>
+                        <span class="tab-name">Untitled Tab</span>
+                        <i class="fa-solid fa-xmark tab-close"></i>
+                    </div>
+                    <button class="new-tab-btn" id="new-tab-btn">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </div>
+                <div id="editor-container"></div>
+                <div class="bottom-bar">
+                    <button class="action-button">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Execute</span>
+                    </button>
+                    <button class="action-button" id="clear-btn">
+                        <i class="fa-solid fa-eraser"></i>
+                        <span>Clear</span>
+                    </button>
+                    <button class="action-button" id="open-btn">
+                        <i class="fa-solid fa-folder-open"></i>
+                        <span>Open</span>
+                    </button>
+                    <button class="action-button" id="save-btn">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>Save</span>
+                    </button>
+                    <button class="action-button attach">
+                        <i class="fa-solid fa-tower-broadcast"></i>
+                        <span>Attach</span>
+                    </button>
+                </div>
+            </div>
+            <div class="settings-page" id="settings-page" style="display: none;">
+                <div class="settings-container">
+                    <h2 class="settings-title">Settings</h2>
+                    <div class="settings-list">
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">Always on top</div>
+                                <div class="setting-description">Pins the application in the foreground</div>
+                            </div>
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="setting-always-on-top">
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">Auto attach</div>
+                                <div class="setting-description">Automatically attaches when Roblox opens</div>
+                            </div>
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="setting-auto-attach">
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">Flip controls</div>
+                                <div class="setting-description">Flips the order of the UI controls</div>
+                            </div>
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="setting-flip-controls">
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">Minimap</div>
+                                <div class="setting-description">Enables a minimap in the editor</div>
+                            </div>
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="setting-minimap">
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">Folding</div>
+                                <div class="setting-description">Enables the ability to collapse a block of code</div>
+                            </div>
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="setting-folding" checked>
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">Autosave tabs on exit</div>
+                                <div class="setting-description">Save all tabs to temp folder when closing the app</div>
+                            </div>
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="setting-autosave-exit">
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">Autosave on change</div>
+                                <div class="setting-description">Automatically save to script file when changes are made</div>
+                            </div>
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="setting-autosave-change">
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">Autosave on interval</div>
+                                <div class="setting-description">Periodically save tabs with assigned script files</div>
+                            </div>
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="setting-autosave-interval">
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">Autosave Interval (seconds)</div>
+                                <div class="setting-description">How often to autosave (only when interval option is enabled)</div>
+                            </div>
+                            <input type="number" class="setting-number-input" id="setting-autosave-seconds" value="5" min="1" max="3600">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="hub-page" id="hub-page" style="display: none;">
+                <div class="hub-header">
+                    <div class="hub-search-bar">
+                        <input type="text" class="hub-search-input" id="hub-search-input" placeholder="Search for scripts...">
+                        <button class="hub-search-btn" id="hub-search-btn">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <span>Search</span>
+                        </button>
+                    </div>
+                    <div class="hub-filters">
+                        <button class="hub-filter-btn active" data-filter="verified">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>Verified</span>
+                        </button>
+                        <button class="hub-filter-btn" data-filter="universal">
+                            <i class="fa-solid fa-globe"></i>
+                            <span>Universal</span>
+                        </button>
+                        <button class="hub-filter-btn" data-filter="nokey">
+                            <i class="fa-solid fa-key"></i>
+                            <span>Keyless</span>
+                        </button>
+                        <button class="hub-filter-btn" data-filter="trending" id="hub-trending-btn">
+                            <i class="fa-solid fa-fire"></i>
+                            <span>Trending</span>
+                        </button>
+                        <div class="hub-disclaimer">
+                            Powered by <a href="#" onclick="require('electron').shell.openExternal('https://scriptblox.com'); return false;">ScriptBlox.com</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="hub-content" id="hub-content">
+                    <div class="hub-loading">
+                        <i class="fa-solid fa-circle-notch"></i>
+                        <span>Loading scripts...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="script-box">
+                <div class="script-box-header">
+                    <div class="search-wrapper">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" class="script-search" placeholder="Search" id="script-search">
+                    </div>
+                </div>
+                <div class="script-list" id="script-list">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // thanks to my personal assisant gemeni for helping me 
+        const path = require('path');
+          const fs = require('fs');
+          const { app } = require('@electron/remote') || require('electron').remote;
+    
+          const settings_path = app.isPackaged 
+            ? path.join(app.getPath('userData'), 'settings.json')
+            : path.join(__dirname, 'settings.json');
+          const tabs_cache_path = app.isPackaged
+            ? path.join(app.getPath('userData'), 'tabs.json')
+            : path.join(require('os').tmpdir(), 'chocosploit-tabs.json');
+          let settings = {
+            always_on_top: false,
+            auto_attach: false,
+            flip_controls: false,
+            minimap: false,
+            folding: true,
+            autosave_exit: false,
+            autosave_change: false,
+            autosave_interval: false,
+            autosave_seconds: 5
+          };
+    
+          function load_settings() {
+            try {
+              if (fs.existsSync(settings_path)) {
+                const data = fs.readFileSync(settings_path, 'utf-8');
+                settings = { ...settings, ...JSON.parse(data) };
+              }
+            } catch (err) {
+              console.error('Error loading settings:', err);
+            }
+          }
+    
+          function save_settings() {
+            try {
+              fs.writeFileSync(settings_path, JSON.stringify(settings, null, 2));
+            } catch (err) {
+              console.error('Error saving settings:', err);
+            }
+          }
+    
+          load_settings();
+    
+            const { ipcRenderer } = require('electron');
+            let is_attached = false;
+            let is_attaching = false;
+          const current_window = (require('@electron/remote') || require('electron').remote).getCurrentWindow();
+    
+          let current_page = 'editor';
+    
+          function switch_page(page) {
+            current_page = page;
+    
+            document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+    
+            document.getElementById('editor-page').style.display = 'none';
+            document.getElementById('settings-page').style.display = 'none';
+            document.getElementById('hub-page').style.display = 'none';
+    
+            const script_box = document.querySelector('.script-box');
+    
+            if (page === 'editor') {
+              document.getElementById('nav-editor').classList.add('active');
+              document.getElementById('editor-page').style.display = 'flex';
+              script_box.style.display = 'flex';
+            } else if (page === 'settings') {
+              document.getElementById('nav-settings').classList.add('active');
+              document.getElementById('settings-page').style.display = 'block';
+              script_box.style.display = 'none';
+            } else if (page === 'hub') {
+              document.getElementById('nav-hub').classList.add('active');
+              document.getElementById('hub-page').style.display = 'flex';
+              script_box.style.display = 'none';
+              if (typeof init_hub !== 'undefined') {
+                init_hub();
+              }
+            }
+          }
+    
+          document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('nav-editor').addEventListener('click', () => switch_page('editor'));
+          document.getElementById('nav-settings').addEventListener('click', () => switch_page('settings'));
+          document.getElementById('nav-hub').addEventListener('click', () => switch_page('hub'));
+        });
+  
+        const scripts_folder = app.isPackaged
+          ? path.join(process.resourcesPath, '..', 'scripts')
+          : path.join(__dirname, 'scripts');
+        if (!fs.existsSync(scripts_folder)) {
+          fs.mkdirSync(scripts_folder);
+        }
+          let tabs = [
+            { id: 0, name: 'Untitled Tab', content: '-- those who grow...' }
+          ];
+          let active_tab_id = 0;
+          let next_tab_id = 1;
+    
+          const amd_loader = require('./node_modules/monaco-editor/min/vs/loader.js');
+          const amd_require = amd_loader.require;
+    
+          function uri_from_path(_path) {
+            let pathname = path.resolve(_path).replace(/\\/g, '/');
+            if (pathname.length > 0 && pathname.charAt(0) !== '/') {
+              pathname = '/' + pathname;
+            }
+            return encodeURI('file://' + pathname);
+          }
+    
+          amd_require.config({
+            baseUrl: uri_from_path(path.join(__dirname, './node_modules/monaco-editor/min'))
+          });
+    
+          self.module = undefined;
+    
+          amd_require(['vs/editor/editor.main'], function () {
+    
+            monaco.editor.defineTheme('choco-dark', {
+              base: 'vs-dark',
+              inherit: true,
+              rules: [
+                { token: 'comment', foreground: '6A9955', fontStyle: 'italic' },
+                { token: 'keyword', foreground: 'C586C0' },
+                { token: 'string', foreground: 'CE9178' },
+                { token: 'number', foreground: 'B5CEA8' },
+                { token: 'function', foreground: 'DCDCAA' },
+                { token: 'variable', foreground: '9CDCFE' },
+                { token: 'type', foreground: '4EC9B0' },
+                { token: 'operator', foreground: 'D4D4D4' },
+              ],
+              colors: {
+                'editor.background': '#171717',
+                'editor.lineHighlightBackground': '#1f1f1f',
+                'editorLineNumber.foreground': '#858585',
+                'editorLineNumber.activeForeground': '#c6c6c6',
+                'editorGutter.background': '#171717',
+                'minimap.background': '#1e1e1e'
+              }
+            });
+    
+            const editor = monaco.editor.create(document.getElementById('editor-container'), {
+              value: '-- those who grow... ',
+              language: 'lua',
+              theme: 'choco-dark',
+              automaticLayout: true,
+              fontSize: 14,
+              minimap: { enabled: settings.minimap, side: 'right', maxColumn: 60 },
+              folding: settings.folding,
+              scrollBeyondLastLine: false,
+              roundedSelection: true,
+              padding: { top: 10, bottom: 10 }
+            });
+    
+            function apply_settings() {
+    
+              current_window.setAlwaysOnTop(settings.always_on_top);
+    
+              editor.updateOptions({ minimap: { enabled: settings.minimap } });
+    
+              editor.updateOptions({ folding: settings.folding });
+    
+              const bottom_bar = document.querySelector('.bottom-bar');
+              const attach_btn = document.querySelector('.action-button.attach');
+              
+              if (settings.flip_controls) {
+                attach_btn.style.marginLeft = '0';
+                attach_btn.style.marginRight = '0';
+                attach_btn.style.order = '-1';
+                
+                const first_btn = bottom_bar.querySelector('.action-button:not(.attach)');
+                first_btn.style.marginLeft = 'auto';
+              } else {
+                attach_btn.style.marginLeft = 'auto';
+                attach_btn.style.marginRight = '0';
+                attach_btn.style.order = '0';
+                
+                const first_btn = bottom_bar.querySelector('.action-button:not(.attach)');
+                first_btn.style.marginLeft = '0';
+              }
+    
+              document.getElementById('setting-always-on-top').checked = settings.always_on_top;
+              document.getElementById('setting-auto-attach').checked = settings.auto_attach;
+              document.getElementById('setting-flip-controls').checked = settings.flip_controls;
+              document.getElementById('setting-minimap').checked = settings.minimap;
+              document.getElementById('setting-folding').checked = settings.folding;
+              document.getElementById('setting-autosave-exit').checked = settings.autosave_exit;
+              document.getElementById('setting-autosave-change').checked = settings.autosave_change;
+              document.getElementById('setting-autosave-interval').checked = settings.autosave_interval;
+              document.getElementById('setting-autosave-seconds').value = settings.autosave_seconds;
+            }
+    
+            function setup_settings_listeners() {
+              document.getElementById('setting-always-on-top').addEventListener('change', (e) => {
+                settings.always_on_top = e.target.checked;
+                current_window.setAlwaysOnTop(settings.always_on_top);
+                save_settings();
+              });
+    
+              document.getElementById('setting-auto-attach').addEventListener('change', (e) => {
+                settings.auto_attach = e.target.checked;
+                save_settings();
+              });
+    
+              document.getElementById('setting-flip-controls').addEventListener('change', (e) => {
+                settings.flip_controls = e.target.checked;
+                const bottom_bar = document.querySelector('.bottom-bar');
+                const attach_btn = document.querySelector('.action-button.attach');
+                
+                if (settings.flip_controls) {
+                  attach_btn.style.marginLeft = '0';
+                  attach_btn.style.marginRight = '0';
+                  attach_btn.style.order = '-1';
+                  
+                  const first_btn = bottom_bar.querySelector('.action-button:not(.attach)');
+                  first_btn.style.marginLeft = 'auto';
+                } else {
+                  attach_btn.style.marginLeft = 'auto';
+                  attach_btn.style.marginRight = '0';
+                  attach_btn.style.order = '0';
+                  
+                  const first_btn = bottom_bar.querySelector('.action-button:not(.attach)');
+                  first_btn.style.marginLeft = '0';
+                }
+                save_settings();
+              });
+    
+              document.getElementById('setting-minimap').addEventListener('change', (e) => {
+                settings.minimap = e.target.checked;
+                editor.updateOptions({ minimap: { enabled: settings.minimap } });
+                save_settings();
+              });
+    
+              document.getElementById('setting-folding').addEventListener('change', (e) => {
+                settings.folding = e.target.checked;
+                editor.updateOptions({ folding: settings.folding });
+                save_settings();
+              });
+              
+              document.getElementById('setting-autosave-exit').addEventListener('change', (e) => {
+                settings.autosave_exit = e.target.checked;
+                save_settings();
+              });
+              
+              document.getElementById('setting-autosave-change').addEventListener('change', (e) => {
+                settings.autosave_change = e.target.checked;
+                save_settings();
+              });
+              
+              document.getElementById('setting-autosave-interval').addEventListener('change', (e) => {
+                settings.autosave_interval = e.target.checked;
+                save_settings();
+                if (settings.autosave_interval) {
+                  start_autosave_interval();
+                } else {
+                  stop_autosave_interval();
+                }
+              });
+              
+              document.getElementById('setting-autosave-seconds').addEventListener('change', (e) => {
+                settings.autosave_seconds = parseInt(e.target.value) || 5;
+                save_settings();
+                if (settings.autosave_interval) {
+                  stop_autosave_interval();
+                  start_autosave_interval();
+                }
+              });
+            }
+    
+            apply_settings();
+            setup_settings_listeners();
+            
+            let autosave_interval_timer = null;
+            
+            window.save_tabs_to_cache = function() {
+              try {
+                save_current_tab();
+                const tabs_data = tabs.map(tab => ({
+                  id: tab.id,
+                  name: tab.name,
+                  content: tab.id === active_tab_id ? editor.getValue() : tab.content
+                }));
+                const data = { tabs: tabs_data, active_tab_id: active_tab_id };
+                fs.writeFileSync(tabs_cache_path, JSON.stringify(data, null, 2));
+              } catch (err) {
+                console.error('Error saving tabs cache:', err);
+              }
+            }
+            
+            function load_tabs_from_cache() {
+              try {
+                if (fs.existsSync(tabs_cache_path)) {
+                  const data = JSON.parse(fs.readFileSync(tabs_cache_path, 'utf-8'));
+                  if (data.tabs && data.tabs.length > 0) {
+                    tabs = data.tabs;
+                    active_tab_id = data.active_tab_id || tabs[0].id;
+                    next_tab_id = Math.max(...tabs.map(t => t.id)) + 1;
+                    
+                    const active_tab = tabs.find(t => t.id === active_tab_id);
+                    if (active_tab) {
+                      editor.setValue(active_tab.content);
+                    }
+                    
+                    setTimeout(() => {
+                      render_tabs();
+                    }, 100);
+                    return true;
+                  }
+                }
+              } catch (err) {
+                console.error('Error loading tabs cache:', err);
+              }
+              return false;
+            }
+            
+            function start_autosave_interval() {
+              if (autosave_interval_timer) return;
+              autosave_interval_timer = setInterval(() => {
+                save_current_tab();
+                save_tabs_to_cache();
+              }, settings.autosave_seconds * 1000);
+            }
+            
+            function stop_autosave_interval() {
+              if (autosave_interval_timer) {
+                clearInterval(autosave_interval_timer);
+                autosave_interval_timer = null;
+              }
+            }
+            
+            if (settings.autosave_exit) {
+              load_tabs_from_cache();
+            }
+            
+            if (settings.autosave_interval) {
+              start_autosave_interval();
+            }
+            
+            window.addEventListener('beforeunload', () => {
+              if (settings.autosave_exit) {
+                save_current_tab();
+                save_tabs_to_cache();
+              }
+            });
+    
+            window.save_current_tab = function() {
+              const current_tab = tabs.find(t => t.id === active_tab_id);
+              if (current_tab) {
+                current_tab.content = editor.getValue();
+              }
+            };
+
+            function rename_tab(tab_id) {
+              const tab = tabs.find(t => t.id === tab_id);
+              if (!tab) return;
+              
+              const tab_el = document.querySelector(`.tab[data-tab-id="${tab_id}"]`);
+              if (!tab_el) return;
+              
+              const tab_name_span = tab_el.querySelector('.tab-name');
+              const current_name = tab.name;
+              
+              const input = document.createElement('input');
+              input.type = 'text';
+              input.value = current_name;
+              input.style.cssText = `
+                background: #2d2d2d;
+                border: 1px solid #4d4d4d;
+                border-radius: 2px;
+                color: #bebebe;
+                font-family: 'Segoe UI', sans-serif;
+                font-size: 13px;
+                padding: 2px 4px;
+                outline: none;
+                width: 120px;
+              `;
+              
+              tab_name_span.replaceWith(input);
+              input.focus();
+              input.select();
+              
+              const finish_rename = () => {
+                const new_name = input.value.trim();
+                if (new_name && new_name !== current_name) {
+                  tab.name = new_name;
+                  save_tabs_to_cache();
+                }
+                render_tabs();
+              };
+              
+              input.addEventListener('blur', finish_rename);
+              input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                  finish_rename();
+                } else if (e.key === 'Escape') {
+                  render_tabs();
+                }
+              });
+            }
+    
+            window.switch_tab = function(tab_id) {
+              save_current_tab();
+              active_tab_id = tab_id;
+              const tab = tabs.find(t => t.id === tab_id);
+              if (tab) {
+                editor.setValue(tab.content);
+              }
+              update_tab_ui();
+            };
+    
+            function create_tab() {
+              const new_tab = {
+                id: next_tab_id++,
+                name: `Untitled Tab`,
+                content: `-- those who grow...`
+              };
+              tabs.push(new_tab);
+              switch_tab(new_tab.id);
+              render_tabs();
+            }
+            // dottik is cute
+            function close_tab(tab_id, event) {
+              event.stopPropagation();
+              if (tabs.length === 1) return;
+    
+              const tab_idx = tabs.findIndex(t => t.id === tab_id);
+              tabs.splice(tab_idx, 1);
+    
+              if (active_tab_id === tab_id) {
+                const new_active = tabs[Math.max(0, tab_idx - 1)];
+                switch_tab(new_active.id);
+              }
+    
+              render_tabs();
+            }
+    
+            window.render_tabs = function() {
+              const tab_bar = document.querySelector('.tab-bar');
+              const new_tab_btn = document.getElementById('new-tab-btn');
+              tab_bar.innerHTML = '';
+    
+              tabs.forEach(tab => {
+                const tab_el = document.createElement('div');
+                tab_el.className = `tab${tab.id === active_tab_id ? ' active' : ''}`;
+                tab_el.dataset.tabId = tab.id;
+                tab_el.innerHTML = `
+                  <i class="fa-solid fa-scroll tab-icon"></i>
+                  <span class="tab-name">${tab.name}</span>
+                  <i class="fa-solid fa-xmark tab-close"></i>
+                `;
+    
+                tab_el.addEventListener('click', (e) => {
+                  if (!e.target.classList.contains('tab-close')) {
+                    switch_tab(tab.id);
+                  }
+                });
+
+                tab_el.addEventListener('dblclick', (e) => {
+                  if (!e.target.classList.contains('tab-close')) {
+                    rename_tab(tab.id);
+                  }
+                });
+                
+                tab_el.addEventListener('contextmenu', (e) => {
+                  if (!e.target.classList.contains('tab-close')) {
+                    e.preventDefault();
+                    show_tab_context_menu(e, tab.id);
+                  }
+                });
+    
+                tab_el.querySelector('.tab-close').addEventListener('click', (e) => {
+                  close_tab(tab.id, e);
+                });
+    
+                tab_bar.appendChild(tab_el);
+              });
+    
+              tab_bar.appendChild(new_tab_btn);
+            }
+    
+            function show_tab_context_menu(e, tab_id) {
+              let context_menu = document.querySelector('.tab-context-menu');
+              if (!context_menu) {
+                context_menu = document.createElement('div');
+                context_menu.className = 'tab-context-menu';
+                context_menu.innerHTML = `
+                  <div class="tab-context-menu-item" data-action="rename">Rename</div>
+                `;
+                document.body.appendChild(context_menu);
+
+                context_menu.addEventListener('click', (ev) => {
+                  const action = ev.target.dataset.action;
+                  if (action === 'rename') {
+                    rename_tab(parseInt(context_menu.dataset.targetTabId));
+                  }
+                  hide_tab_context_menu();
+                });
+
+                document.addEventListener('click', hide_tab_context_menu);
+              }
+
+              context_menu.dataset.targetTabId = tab_id;
+              context_menu.style.left = e.pageX + 'px';
+              context_menu.style.top = e.pageY + 'px';
+              context_menu.classList.add('show');
+            }
+
+            function hide_tab_context_menu() {
+              const context_menu = document.querySelector('.tab-context-menu');
+              if (context_menu) {
+                context_menu.classList.remove('show');
+              }
+            }
+
+            function update_tab_ui() {
+              document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.toggle('active', parseInt(tab.dataset.tabId) === active_tab_id);
+              });
+            }
+    
+            document.getElementById('new-tab-btn').addEventListener('click', create_tab);
+            
+            render_tabs();
+    
+            editor.onDidChangeModelContent(() => {
+              save_current_tab();
+              if (settings.autosave_change) {
+                save_tabs_to_cache();
+              }
+            });
+    
+            let all_scripts = [];
+    
+            function load_scripts() {
+              const script_list = document.getElementById('script-list');
+              all_scripts = [];
+    
+              try {
+                const files = fs.readdirSync(scripts_folder);
+                all_scripts = files.filter(file => file.endsWith('.txt') || file.endsWith('.lua'));
+              } catch (err) {
+                console.error('Error reading scripts folder:', err);
+              }
+    
+              render_scripts(all_scripts);
+            }
+    
+            function render_scripts(scripts) {
+              const script_list = document.getElementById('script-list');
+              script_list.innerHTML = '';
+    
+              if (scripts.length === 0) {
+                return;
+              }
+    
+              scripts.forEach(script => {
+                const script_item = document.createElement('div');
+                script_item.className = 'script-item';
+                script_item.innerHTML = `
+                  <i class="fa-solid fa-file"></i>
+                  <span>${script}</span>
+                `;
+    
+                script_item.addEventListener('click', () => {
+                  load_script_to_editor(script);
+                });
+                
+                script_item.addEventListener('contextmenu', (e) => {
+                  e.preventDefault();
+                  show_script_context_menu(e, script);
+                });
+    
+                script_list.appendChild(script_item);
+              });
+            }
+    
+            function load_script_to_editor(script_name) {
+              try {
+                const script_path = path.join(scripts_folder, script_name);
+                const content = fs.readFileSync(script_path, 'utf-8');
+                
+                const new_tab = {
+                  id: next_tab_id++,
+                  name: script_name.replace(/\.(txt|lua)$/, ''),
+                  content: content
+                };
+                tabs.push(new_tab);
+                switch_tab(new_tab.id);
+                render_tabs();
+                save_tabs_to_cache();
+              } catch (err) {
+                console.error('Error loading script:', err);
+              }
+            }
+            
+            function show_script_context_menu(e, script_name) {
+              let context_menu = document.querySelector('.script-context-menu');
+              if (!context_menu) {
+                context_menu = document.createElement('div');
+                context_menu.className = 'script-context-menu';
+                context_menu.innerHTML = `
+                  <div class="script-context-menu-item" data-action="load">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <span>Load Script</span>
+                  </div>
+                  <div class="script-context-menu-item" data-action="execute">
+                    <i class="fa-solid fa-play"></i>
+                    <span>Execute Script</span>
+                  </div>
+                  <div class="script-context-menu-item" data-action="open-explorer">
+                    <i class="fa-solid fa-folder"></i>
+                    <span>Open in Explorer</span>
+                  </div>
+                  <div class="script-context-menu-item" data-action="rename">
+                    <i class="fa-solid fa-pen"></i>
+                    <span>Rename Script</span>
+                  </div>
+                  <div class="script-context-menu-item danger" data-action="delete">
+                    <i class="fa-solid fa-trash"></i>
+                    <span>Delete Script</span>
+                  </div>
+                `;
+                document.body.appendChild(context_menu);
+
+                context_menu.addEventListener('click', (ev) => {
+                  const action = ev.target.closest('.script-context-menu-item')?.dataset.action;
+                  const script_name = context_menu.dataset.targetScript;
+                  
+                  if (action === 'load') {
+                    load_script_to_editor(script_name);
+                  } else if (action === 'execute') {
+                    execute_script_file(script_name);
+                  } else if (action === 'open-explorer') {
+                    open_script_in_explorer(script_name);
+                  } else if (action === 'rename') {
+                    rename_script_file(script_name);
+                  } else if (action === 'delete') {
+                    delete_script_file(script_name);
+                  }
+                  hide_script_context_menu();
+                });
+
+                document.addEventListener('click', hide_script_context_menu);
+              }
+
+              context_menu.dataset.targetScript = script_name;
+              context_menu.style.left = e.pageX + 'px';
+              context_menu.style.top = e.pageY + 'px';
+              context_menu.classList.add('show');
+            }
+
+            function hide_script_context_menu() {
+              const context_menu = document.querySelector('.script-context-menu');
+              if (context_menu) {
+                context_menu.classList.remove('show');
+              }
+            }
+            
+            function execute_script_file(script_name) {
+              try {
+                const script_path = path.join(scripts_folder, script_name);
+                const content = fs.readFileSync(script_path, 'utf-8');
+                if (content.trim()) {
+                  ipcRenderer.send('execute', content);
+                }
+              } catch (err) {
+                console.error('Error executing script:', err);
+              }
+            }
+            
+            function open_script_in_explorer(script_name) {
+              try {
+                const script_path = path.join(scripts_folder, script_name);
+                require('electron').shell.showItemInFolder(script_path);
+              } catch (err) {
+                console.error('Error opening script in explorer:', err);
+              }
+            }
+            
+            function rename_script_file(script_name) {
+              let dialog = document.querySelector('.rename-dialog');
+              if (!dialog) {
+                dialog = document.createElement('div');
+                dialog.className = 'rename-dialog';
+                dialog.innerHTML = `
+                  <div class="rename-dialog-box">
+                    <div class="rename-dialog-title">Rename Script</div>
+                    <input type="text" class="rename-dialog-input" placeholder="Enter new name...">
+                    <div class="rename-dialog-buttons">
+                      <button class="rename-dialog-btn" data-action="cancel">Cancel</button>
+                      <button class="rename-dialog-btn primary" data-action="confirm">Rename</button>
+                    </div>
+                  </div>
+                `;
+                document.body.appendChild(dialog);
+                
+                dialog.addEventListener('click', (e) => {
+                  if (e.target === dialog) {
+                    dialog.classList.remove('show');
+                  }
+                });
+              }
+              
+              const input = dialog.querySelector('.rename-dialog-input');
+              const confirm_btn = dialog.querySelector('[data-action="confirm"]');
+              const cancel_btn = dialog.querySelector('[data-action="cancel"]');
+              
+              input.value = script_name.replace(/\.(txt|lua)$/, '');
+              dialog.classList.add('show');
+              input.focus();
+              input.select();
+              //i feel like diddy
+              const handle_rename = () => {
+                const new_name = input.value.trim();
+                if (!new_name) {
+                  dialog.classList.remove('show');
+                  return;
+                }
+                
+                const extension = script_name.match(/\.(txt|lua)$/)?.[0] || '.lua';
+                const new_filename = new_name + extension;
+                
+                if (new_filename === script_name) {
+                  dialog.classList.remove('show');
+                  return;
+                }
+                
+                try {
+                  const old_path = path.join(scripts_folder, script_name);
+                  const new_path = path.join(scripts_folder, new_filename);
+                  
+                  if (fs.existsSync(new_path)) {
+                    alert('A script with that name already exists!');
+                    return;
+                  }
+                  
+                  fs.renameSync(old_path, new_path);
+                  load_scripts();
+                  dialog.classList.remove('show');
+                } catch (err) {
+                  console.error('Error renaming script:', err);
+                  alert('Failed to rename script!');
+                }
+              };
+              
+              confirm_btn.onclick = handle_rename;
+              cancel_btn.onclick = () => dialog.classList.remove('show');
+              
+              input.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                  handle_rename();
+                } else if (e.key === 'Escape') {
+                  dialog.classList.remove('show');
+                }
+              };
+            }
+            
+            function delete_script_file(script_name) {
+              if (!confirm(`Are you sure you want to delete "${script_name}"?`)) return;
+              
+              try {
+                const script_path = path.join(scripts_folder, script_name);
+                fs.unlinkSync(script_path);
+                load_scripts();
+              } catch (err) {
+                console.error('Error deleting script:', err);
+                alert('Failed to delete script!');
+              }
+            }
+    
+            document.getElementById('script-search').addEventListener('input', (e) => {
+              const search = e.target.value.toLowerCase();
+              const filtered = all_scripts.filter(script => 
+                script.toLowerCase().includes(search)
+              );
+              render_scripts(filtered);
+            });
+    
+            load_scripts();
+    
+            setInterval(() => {
+              const search = document.getElementById('script-search').value.toLowerCase();
+              load_scripts();
+              if (search) {
+                const filtered = all_scripts.filter(script => 
+                  script.toLowerCase().includes(search)
+                );
+                render_scripts(filtered);
+              }
+            }, 2000);
+    
+            document.getElementById('open-btn').addEventListener('click', () => {
+              const { dialog } = require('@electron/remote') || require('electron').remote;
+              dialog.showOpenDialog(current_window, {
+                defaultPath: scripts_folder,
+                filters: [
+                  { name: 'Scripts', extensions: ['lua', 'txt'] },
+                  { name: 'All Files', extensions: ['*'] }
+                ],
+                properties: ['openFile']
+              }).then(result => {
+                if (!result.canceled && result.filePaths.length > 0) {
+                  try {
+                    const content = fs.readFileSync(result.filePaths[0], 'utf-8');
+                    editor.setValue(content);
+                    save_current_tab();
+                  } catch (err) {
+                    console.error('Error opening file:', err);
+                  }
+                }
+              });
+            });
+    
+            document.getElementById('save-btn').addEventListener('click', () => {
+              const { dialog } = require('@electron/remote') || require('electron').remote;
+              dialog.showSaveDialog(current_window, {
+                defaultPath: path.join(scripts_folder, 'script.lua'),
+                filters: [
+                  { name: 'Lua Scripts', extensions: ['lua'] },
+                  { name: 'Text Files', extensions: ['txt'] },
+                  { name: 'All Files', extensions: ['*'] }
+                ]
+              }).then(result => {
+                if (!result.canceled && result.filePath) {
+                  try {
+                    fs.writeFileSync(result.filePath, editor.getValue(), 'utf-8');
+                    load_scripts();
+                  } catch (err) {
+                    console.error('Error saving file:', err);
+                  }
+                }
+              });
+            });
+    
+            document.getElementById('clear-btn').addEventListener('click', () => {
+              if (confirm('Are you sure you want to clear the editor?')) {
+                editor.setValue('');
+                save_current_tab();
+              }
+            });
+    
+            document.querySelector('.action-button:first-child').addEventListener('click', () => {
+              const script = editor.getValue();
+              if (script.trim()) {
+                ipcRenderer.send('execute', script);
+              } else {
+                console.log('Editor is empty! Please write a script first.');
+              }
+            });
+          });
+          // ragnar is pixeluted
+          document.getElementById('minimize-btn').addEventListener('click', () => {
+            current_window.minimize();
+          });
+    
+          document.getElementById('maximize-btn').addEventListener('click', () => {
+            if (current_window.isMaximized()) {
+              current_window.unmaximize();
+            } else {
+              current_window.maximize();
+            }
+          });
+    
+          document.getElementById('close-btn').addEventListener('click', () => {
+            current_window.close();
+          });
+          // you're a jew hi jew can i have money pls $$$
+          document.querySelectorAll('.resize-handle').forEach(handle => {
+            handle.addEventListener('mousedown', (e) => {
+              e.preventDefault();
+              const start_x = e.screenX;
+              const start_y = e.screenY;
+              const start_bounds = current_window.getBounds();
+    
+              const dir = handle.className.includes('top-left') ? 'top-left' :
+                              handle.className.includes('top-right') ? 'top-right' :
+                              handle.className.includes('bottom-left') ? 'bottom-left' :
+                              handle.className.includes('bottom-right') ? 'bottom-right' :
+                              handle.className.includes('top') ? 'top' :
+                              handle.className.includes('bottom') ? 'bottom' :
+                              handle.className.includes('left') ? 'left' : 'right';
+    
+              const on_move = (ev) => {
+                const dx = ev.screenX - start_x;
+                const dy = ev.screenY - start_y;
+                const new_bounds = { ...start_bounds };
+    
+                if (dir.includes('top')) {
+                  new_bounds.y = start_bounds.y + dy;
+                  new_bounds.height = start_bounds.height - dy;
+                }
+                if (dir.includes('bottom')) {
+                  new_bounds.height = start_bounds.height + dy;
+                }
+                if (dir.includes('left')) {
+                  new_bounds.x = start_bounds.x + dx;
+                  new_bounds.width = start_bounds.width - dx;
+                }
+                if (dir.includes('right')) {
+                  new_bounds.width = start_bounds.width + dx;
+                }
+    
+                if (new_bounds.width < 700) {
+                  if (dir.includes('left')) {
+                    new_bounds.x = start_bounds.x + start_bounds.width - 700;
+                  }
+                  new_bounds.width = 700;
+                }
+                if (new_bounds.height < 400) {
+                  if (dir.includes('top')) {
+                    new_bounds.y = start_bounds.y + start_bounds.height - 400;
+                  }
+                  new_bounds.height = 400;
+                }
+    
+                current_window.setBounds(new_bounds);
+              };
+    
+              const on_up = () => {
+                document.removeEventListener('mousemove', on_move);
+                document.removeEventListener('mouseup', on_up);
+              };
+    
+            document.addEventListener('mousemove', on_move);
+            document.addEventListener('mouseup', on_up);
+          });
+        });
+
+        document.querySelector('.action-button.attach').addEventListener('click', () => {
+          console.log('Attach button clicked!');
+          if (is_attaching) {
+            console.log('Already attaching, skipping');
+            return; 
+          }
+        
+          is_attaching = true;
+          console.log('Sending attach IPC event');
+          ipcRenderer.send('attach');
+        
+          setTimeout(() => {
+            is_attaching = false;
+          }, 2000);
+        });
+        
+        ipcRenderer.on('attached', (event, status) => {
+          is_attached = status;
+          const attach_btn = document.querySelector('.action-button.attach');
+          const icon = attach_btn.querySelector('i');
+        
+          if (status) {
+            icon.style.color = '#4d8c4e';
+          } else {
+            icon.style.color = '';
+          }
+        });
+        
+        ipcRenderer.on('onLog', (event, msg, type = 'info') => {
+          console.log(`[${type}] ${msg}`);
+        
+          if (type === 'error') {
+            alert(`Error: ${msg}`);
+          }
+        });
+          
+          let hub_initialized = false;
+          let current_scripts = [];
+          let hub_current_page = 1;
+          let total_pages = 1;
+          let current_query = '';
+          let active_filters = {
+            verified: true,
+            universal: false,
+            nokey: false
+          };
+          let is_trending = false;
+          // aprilfools is that you?
+          async function fetch_scripts(query = '', page = 1) {
+            const hub_content = document.getElementById('hub-content');
+            hub_content.innerHTML = '<div class="hub-loading"><i class="fa-solid fa-circle-notch"></i><span>Loading scripts...</span></div>';
+            
+            try {
+              let url;
+              let params = new URLSearchParams();
+              params.append('page', page);
+              params.append('max', '20');
+              
+              if (active_filters.verified) params.append('verified', '1');
+              if (active_filters.universal) params.append('universal', '1');
+              if (active_filters.nokey) params.append('key', '0');
+              
+              if (is_trending) {
+                url = 'https://scriptblox.com/api/script/trending';
+              } else if (query.trim()) {
+                url = `https://scriptblox.com/api/script/search?q=${encodeURIComponent(query)}&${params.toString()}`;
+              } else {
+                url = `https://scriptblox.com/api/script/fetch?${params.toString()}`;
+              }
+              // get off league
+              const response = await fetch(url);
+              const data = await response.json();
+              
+              if (data.message) {
+                throw new Error(data.message);
+              }
+              
+              current_scripts = data.result.scripts || [];
+              total_pages = data.result.totalPages || 1;
+              hub_current_page = page;
+              
+              render_scripts();
+            } catch (err) {
+              hub_content.innerHTML = `<div class="hub-error"><i class="fa-solid fa-circle-exclamation"></i><span>Error: ${err.message}</span></div>`;
+            }
+          }
+          
+          function render_scripts() {
+            const hub_content = document.getElementById('hub-content');
+            
+            if (current_scripts.length === 0) {
+              hub_content.innerHTML = '<div class="hub-loading"><i class="fa-solid fa-circle-info"></i><span>No scripts found</span></div>';
+              return;
+            }
+            
+            const grid = document.createElement('div');
+            grid.className = 'hub-scripts-grid';
+            
+            current_scripts.forEach(script => {
+              const card = create_script_card(script);
+              grid.appendChild(card);
+            });
+            
+            hub_content.innerHTML = '';
+            hub_content.appendChild(grid);
+            
+            if (total_pages > 1 && !is_trending) {
+              const pagination = create_pagination();
+              hub_content.appendChild(pagination);
+            }
+          }
+          
+          function create_script_card(script) {
+            const card = document.createElement('div');
+            card.className = 'hub-script-card';
+            
+            const thumbnail = script.game?.imageUrl || script.image || '';
+            const title = script.title || 'Untitled';
+            const gameName = script.game?.name || 'Universal';
+            const createdDate = script.createdAt ? new Date(script.createdAt).toLocaleDateString() : '';
+            const updatedDate = script.updatedAt ? new Date(script.updatedAt).toLocaleDateString() : createdDate;
+            
+            let badges = '';
+            if (script.verified) badges += '<span class="hub-script-badge verified">Verified</span>';
+            if (script.isUniversal) badges += '<span class="hub-script-badge universal">Universal</span>';
+            if (script.isPatched) badges += '<span class="hub-script-badge patched">Patched</span>';
+            if (script.key) badges += '<span class="hub-script-badge">Key</span>';
+            
+            card.innerHTML = `
+              <img src="${thumbnail || 'https://i.ibb.co/YTKhSLPV/482487823-1259551918476711-3606273166946790072-n.jpg'}" alt="${title}" class="hub-script-thumbnail" onerror="this.src='https://i.ibb.co/YTKhSLPV/482487823-1259551918476711-3606273166946790072-n.jpg'">
+              <div class="hub-script-info">
+                <div class="hub-script-title" title="${title}">${title}</div>
+                <div class="hub-script-meta">
+                  <div class="hub-script-game">
+                    <i class="fa-solid fa-gamepad"></i>
+                    <span>${gameName}</span>
+                  </div>
+                  <div class="hub-script-date">
+                    <i class="fa-solid fa-clock"></i>
+                    <span>Updated: ${updatedDate}</span>
+                  </div>
+                </div>
+                ${badges ? `<div class="hub-script-badges">${badges}</div>` : ''}
+                <div class="hub-script-actions">
+                  <button class="hub-script-btn primary" onclick="load_script_from_hub('${script._id}')">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Load</span>
+                  </button>
+                  <button class="hub-script-btn" onclick="open_script_in_browser('${script.slug}')">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>Browser</span>
+                  </button>
+                </div>
+              </div>
+            `;
+            
+            return card;
+          }
+          // i did not have sexual relations with that man
+          function create_pagination() {
+            const pagination = document.createElement('div');
+            pagination.className = 'hub-pagination';
+            
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'hub-page-btn';
+            prevBtn.textContent = 'Previous';
+            prevBtn.disabled = hub_current_page <= 1;
+            prevBtn.onclick = () => {
+              if (hub_current_page > 1) {
+                fetch_scripts(current_query, hub_current_page - 1);
+              }
+            };
+            
+            const pageInfo = document.createElement('span');
+            pageInfo.className = 'hub-page-info';
+            pageInfo.textContent = `Page ${hub_current_page} of ${total_pages}`;
+            
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'hub-page-btn';
+            nextBtn.textContent = 'Next';
+            nextBtn.disabled = hub_current_page >= total_pages;
+            nextBtn.onclick = () => {
+              if (hub_current_page < total_pages) {
+                fetch_scripts(current_query, hub_current_page + 1);
+              }
+            };
+            
+            pagination.appendChild(prevBtn);
+            pagination.appendChild(pageInfo);
+            pagination.appendChild(nextBtn);
+            
+            return pagination;
+          }
+          
+          async function load_script_from_hub(script_id) {
+            try {
+              const response = await fetch(`https://scriptblox.com/api/script/${script_id}`);
+              const data = await response.json();
+              
+              if (data.message) {
+                throw new Error(data.message);
+              }
+              
+              const script_content = data.script.script || '';
+              const script_title = data.script.title || 'Script from Hub';
+              
+              switch_page('editor');
+              
+              setTimeout(() => {
+                const new_tab = {
+                  id: next_tab_id++,
+                  name: script_title,
+                  content: script_content
+                };
+                tabs.push(new_tab);
+                switch_tab(new_tab.id);
+                render_tabs();
+                save_tabs_to_cache();
+              }, 100);
+            } catch (err) {
+              alert(`Error loading script: ${err.message}`);
+            }
+          }
+          // initialize the rat
+          function open_script_in_browser(slug) {
+            require('electron').shell.openExternal(`https://scriptblox.com/script/${slug}`);
+          }
+          
+          function init_hub() {
+            if (hub_initialized) return;
+            hub_initialized = true;
+            
+            let lastScrollTop = 0;
+            const hubContent = document.getElementById('hub-content');
+            const hubHeader = document.querySelector('.hub-header');
+            
+            hubContent.addEventListener('scroll', () => {
+              const scrollTop = hubContent.scrollTop;
+              
+              if (scrollTop <= 50) {
+                hubHeader.classList.remove('hidden');
+              } else if (scrollTop > lastScrollTop) {
+                hubHeader.classList.add('hidden');
+              } else {
+                hubHeader.classList.remove('hidden');
+              }
+              
+              lastScrollTop = scrollTop;
+            });
+            
+            document.getElementById('hub-search-btn').addEventListener('click', () => {
+              const query = document.getElementById('hub-search-input').value;
+              current_query = query;
+              is_trending = false;
+              document.getElementById('hub-trending-btn').classList.remove('active');
+              fetch_scripts(query, 1);
+            });
+            
+            document.getElementById('hub-search-input').addEventListener('keypress', (e) => {
+              if (e.key === 'Enter') {
+                const query = document.getElementById('hub-search-input').value;
+                current_query = query;
+                is_trending = false;
+                document.getElementById('hub-trending-btn').classList.remove('active');
+                fetch_scripts(query, 1);
+              }
+            });
+            // steal the users information and send to my server for "personal use"
+            document.querySelectorAll('.hub-filter-btn[data-filter]').forEach(btn => {
+              btn.addEventListener('click', () => {
+                const filter = btn.dataset.filter;
+                
+                if (filter === 'trending') {
+                  is_trending = !is_trending;
+                  btn.classList.toggle('active', is_trending);
+                  if (is_trending) {
+                    document.getElementById('hub-search-input').value = '';
+                    current_query = '';
+                    Object.keys(active_filters).forEach(k => active_filters[k] = false);
+                    document.querySelectorAll('.hub-filter-btn[data-filter]:not([data-filter="trending"])').forEach(b => b.classList.remove('active'));
+                  }
+                } else {
+                  active_filters[filter] = !active_filters[filter];
+                  btn.classList.toggle('active', active_filters[filter]);
+                  is_trending = false;
+                  document.getElementById('hub-trending-btn').classList.remove('active');
+                }
+                
+                fetch_scripts(current_query, 1);
+              });
+            });
+            
+            fetch_scripts('', 1);
+          }
+    </script>
+</body>
+</html>
