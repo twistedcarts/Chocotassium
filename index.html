@@ -31,6 +31,47 @@
             flex-direction: column;
             border-radius: 12px;
           }
+
+          .resize-handle {
+            position: fixed;
+            z-index: 9999;
+            -webkit-app-region: no-drag;
+            pointer-events: auto;
+          }
+
+          .resize-handle.edge {
+            background: transparent;
+          }
+
+          .resize-handle.corner {
+            width: 12px;
+            height: 12px;
+            background: transparent;
+          }
+
+          .resize-handle.top,
+          .resize-handle.bottom {
+            left: 8px;
+            right: 8px;
+            height: 4px;
+          }
+
+          .resize-handle.left,
+          .resize-handle.right {
+            top: 8px;
+            bottom: 8px;
+            width: 4px;
+          }
+
+          .resize-handle.top { top: 0; cursor: n-resize; }
+          .resize-handle.bottom { bottom: 0; cursor: s-resize; }
+          .resize-handle.left { left: 0; cursor: w-resize; }
+          .resize-handle.right { right: 0; cursor: e-resize; }
+
+          .resize-handle.top-left { top: 0; left: 0; cursor: nw-resize; }
+          .resize-handle.top-right { top: 0; right: 0; cursor: ne-resize; }
+          .resize-handle.bottom-left { bottom: 0; left: 0; cursor: sw-resize; }
+          .resize-handle.bottom-right { bottom: 0; right: 0; cursor: se-resize; }
           
           .titlebar {
             height: 40px;
@@ -132,29 +173,36 @@
           }
           
           .content {
-            flex: 1;
-            display: flex;
-            padding: 3px;
-            gap: 0;
-            -webkit-app-region: no-drag;
-            position: relative;
+              flex: 1;
+              display: flex;
+              padding: 3px;
+              gap: 0;
+              -webkit-app-region: no-drag;
+              position: relative;
+              min-width: 0;
+              min-height: 0;
+              overflow: hidden;
           }
-          
+
           .editor-wrapper {
-            flex: 1;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
+              flex: 1;
+              height: 100%;
+              display: flex;
+              flex-direction: column;
+              min-width: 0;
+              min-height: 0;
           }
-          
+
           .script-box {
-            width: 200px;
-            background: #1e1e1e;
-            display: flex;
-            flex-direction: column;
-            border-left: 1px solid #2d2d2d;
+              width: 200px;
+              min-width: 200px;
+              background: #1e1e1e;
+              display: flex;
+              flex-direction: column;
+              border-left: 1px solid #2d2d2d;
+              flex-shrink: 0;
           }
-          
+
           .script-box-header {
             padding: 8px;
             border-bottom: 1px solid #2d2d2d;
@@ -242,18 +290,19 @@
           }
           
           .tab-bar {
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            padding: 6px 0 0 3px;
-            background: transparent;
-            -webkit-app-region: no-drag;
-            overflow-x: auto;
-            overflow-y: hidden;
-            flex-wrap: nowrap;
-            scrollbar-width: thin;
-            scrollbar-color: #3d3d3d transparent;
-            min-width: 0;
+              display: flex;
+              align-items: center;
+              gap: 3px;
+              padding: 6px 0 0 3px;
+              background: transparent;
+              -webkit-app-region: no-drag;
+              overflow-x: auto;
+              overflow-y: hidden;
+              flex-wrap: nowrap;
+              scrollbar-width: thin;
+              scrollbar-color: #3d3d3d transparent;
+              min-width: 0;
+              flex-shrink: 0;
           }
           
           .tab-bar::-webkit-scrollbar {
@@ -348,9 +397,11 @@
           }
           
           #editor-container {
-            flex: 1;
-            width: 100%;
-            overflow: hidden;
+              flex: 1;
+              width: 100%;
+              overflow: hidden;
+              min-width: 0;
+              min-height: 0;
           }
           
           .bottom-bar {
@@ -399,10 +450,6 @@
           h1 {
             color: white;
             -webkit-app-region: no-drag;
-          }
-          
-          .resize-handle {
-            display: none;
           }
           
           .settings-page {
@@ -1207,6 +1254,15 @@
                 <button class="window-button close" id="close-btn">✕</button>
             </div>
         </div>
+        <div class="resize-handle edge top" data-resize="top"></div>
+        <div class="resize-handle edge bottom" data-resize="bottom"></div>
+        <div class="resize-handle edge left" data-resize="left"></div>
+        <div class="resize-handle edge right" data-resize="right"></div>
+
+        <div class="resize-handle corner top-left" data-resize="top-left"></div>
+        <div class="resize-handle corner top-right" data-resize="top-right"></div>
+        <div class="resize-handle corner bottom-left" data-resize="bottom-left"></div>
+        <div class="resize-handle corner bottom-right" data-resize="bottom-right"></div>
         <div class="content">
             <div class="editor-wrapper" id="editor-page">
                 <div class="tab-bar">
@@ -1487,10 +1543,107 @@
     
           load_settings();
     
-            const { ipcRenderer } = require('electron');
-            let is_attached = false;
-            let is_attaching = false;
+          const { ipcRenderer } = require('electron');
+          let is_attached = false;
+          let is_attaching = false;
           const current_window = (require('@electron/remote') || require('electron').remote).getCurrentWindow();
+
+          // jews? where? ʕ•́ᴥ•̀ʔっ 
+          (function initCustomResize() {
+            const handles = document.querySelectorAll('.resize-handle');
+            if (!handles.length || !current_window) return;
+
+            let isResizing = false;
+            let startX = 0;
+            let startY = 0;
+            let startBounds = null;
+            let activeEdges = null;
+
+            function onMouseMove(e) {
+              if (!isResizing || !startBounds || !activeEdges) return;
+
+              const dx = e.screenX - startX;
+              const dy = e.screenY - startY;
+              const bounds = { ...startBounds };
+
+              const minWidth = 700;
+              const minHeight = 400;
+
+              if (activeEdges.left) {
+                let newWidth = bounds.width - dx;
+                if (newWidth < minWidth) {
+                  dx = bounds.width - minWidth;
+                  newWidth = minWidth;
+                }
+                bounds.x += dx;
+                bounds.width = newWidth;
+              }
+
+              if (activeEdges.right) {
+                let newWidth = bounds.width + dx;
+                if (newWidth < minWidth) newWidth = minWidth;
+                bounds.width = newWidth;
+              }
+
+              if (activeEdges.top) {
+                let newHeight = bounds.height - dy;
+                if (newHeight < minHeight) {
+                  dy = bounds.height - minHeight;
+                  newHeight = minHeight;
+                }
+                bounds.y += dy;
+                bounds.height = newHeight;
+              }
+
+              if (activeEdges.bottom) {
+                let newHeight = bounds.height + dy;
+                if (newHeight < minHeight) newHeight = minHeight;
+                bounds.height = newHeight;
+              }
+
+              current_window.setBounds(bounds, true);
+            }
+
+            function onMouseUp() {
+              if (!isResizing) return;
+              isResizing = false;
+              startBounds = null;
+              activeEdges = null;
+              window.removeEventListener('mousemove', onMouseMove);
+              window.removeEventListener('mouseup', onMouseUp);
+            }
+
+            handles.forEach(handle => {
+              handle.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const mode = handle.getAttribute('data-resize');
+                if (!mode) return;
+
+                const bounds = current_window.getBounds();
+                startBounds = { ...bounds };
+                startX = e.screenX;
+                startY = e.screenY;
+
+                activeEdges = {
+                  left: mode.includes('left'),
+                  right: mode.includes('right'),
+                  top: mode.includes('top'),
+                  bottom: mode.includes('bottom')
+                };
+
+                if (mode === 'top') { activeEdges.left = false; activeEdges.right = false; }
+                if (mode === 'bottom') { activeEdges.left = false; activeEdges.right = false; }
+                if (mode === 'left') { activeEdges.top = false; activeEdges.bottom = false; }
+                if (mode === 'right') { activeEdges.top = false; activeEdges.bottom = false; }
+
+                isResizing = true;
+                window.addEventListener('mousemove', onMouseMove);
+                window.addEventListener('mouseup', onMouseUp);
+              });
+            });
+          })();
     
           let current_page = 'editor';
     
