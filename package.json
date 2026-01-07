@@ -12,6 +12,7 @@
     "productName": "Chocotassium",
     "win": {
       "target": "nsis",
+      "icon": "icon.png",
       "signAndEditExecutable": false
     },
     "nsis": {

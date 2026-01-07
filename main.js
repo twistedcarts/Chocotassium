@@ -1,6 +1,6 @@
 const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron');
 const { WebSocketServer } = require('ws');
-const { spawn } = require('child_process');
+const { spawn, exec } = require('child_process');
 const find = require('find-process');
 const fs = require('fs');
 const path = require('path');
@@ -65,7 +65,7 @@ function start_auto_attach() {
           });
 
           if (win) {
-            win.webContents.send("on_log", `Auto-attaching to Roblox (PID: ${pid})...`, "info");
+            win.webContents.send("onLog", `Auto-attaching to Roblox (PID: ${pid})...`, "info");
           }
         }
       }
@@ -95,8 +95,16 @@ ws_server.on("connection", (ws) => {
   });
 
   ws.on("message", (msg) => {
-    const [type, content] = msg.toString().split("|");
-    win.webContents.send("on_log", content, type);
+    const message = msg.toString();
+    const firstPipe = message.indexOf("|");
+    
+    if (firstPipe === -1) {
+      win.webContents.send("onLog", message, "info");
+    } else {
+      const type = message.substring(0, firstPipe).toLowerCase();
+      const content = message.substring(firstPipe + 1);
+      win.webContents.send("onLog", content, type);
+    }
   });
 });
 // free diddy twin aint did shit
@@ -105,6 +113,7 @@ function create_win() {
     width: 800, height: 450, minWidth: 700, minHeight: 400,
     backgroundColor: '#00000000', frame: false, transparent: true,
     hasShadow: true, resizable: true,
+    icon: path.join(__dirname, 'icon.png'),
     webPreferences: {
       nodeIntegration: true, contextIsolation: false,
       enableRemoteModule: true, spellcheck: false
@@ -140,14 +149,14 @@ function create_win() {
   win_obj.loadFile('index.html');
 
   setTimeout(() => {
-    win_obj.webContents.send("on_log", "Websocket server started at localhost:6969", "info");
+    win_obj.webContents.send("onLog", "Websocket server started at localhost:6969", "info");
     update_auto_attach(); 
   }, 500);
 }
 
 ipcMain.on("attach", async (event) => {
   if (attaching) {
-    win.webContents.send("on_log", "Already attempting to attach...", "warn");
+    win.webContents.send("onLog", "Already attempting to attach...", "warn");
     return;
   }
 
@@ -158,7 +167,7 @@ ipcMain.on("attach", async (event) => {
     : path.join(__dirname, "Injector.exe");
     
   if (!fs.existsSync(inj_path)) {
-    win.webContents.send("on_log", "Injector is not present in directory!", "error");
+    win.webContents.send("onLog", "Injector is not present in directory!", "error");
     attaching = false;
     return;
   }
@@ -170,12 +179,12 @@ ipcMain.on("attach", async (event) => {
       spawn('cmd.exe', ['/c', 'start', '""', inj_path, pid.toString()], {
         detached: true, windowsHide: false
       });
-      win.webContents.send("on_log", `Injecting into Roblox process (PID: ${pid})...`, "info");
+      win.webContents.send("onLog", `Injecting into Roblox process (PID: ${pid})...`, "info");
     } else {
-      win.webContents.send("on_log", "Roblox isn't open.", "error");
+      win.webContents.send("onLog", "Roblox isn't open.", "error");
     }
   } catch (err) {
-    win.webContents.send("on_log", "An error occurred while finding the process.", "error");
+    win.webContents.send("onLog", "An error occurred while finding the process.", "error");
   } finally {
     setTimeout(() => { attaching = false; }, 2000);
   }
@@ -183,20 +192,30 @@ ipcMain.on("attach", async (event) => {
 
 ipcMain.on("execute", (event, script) => {
   if (clients.length === 0) {
-    win.webContents.send("on_log", "No clients attached. Please attach first.", "error");
+    win.webContents.send("onLog", "No clients attached. Please attach first.", "error");
     return;
   }
 
-  let executed = false;
   clients.forEach((ws) => {
     if (ws.readyState === ws.OPEN) {
       ws.send(script);
-      executed = true;
     }
   });
+});
 
-  if (executed) win.webContents.send("on_log", "Script executed successfully!", "info");
-  else win.webContents.send("on_log", "Failed to execute script - no active connections.", "error");
+ipcMain.on('set-reg-key', (event, key, name, value) => {
+  const finalPath = `HKEY_CURRENT_USER\\${key}`;
+  const dword = value ? 1 : 0;
+
+  const command = `reg add "${finalPath}" /v "${name}" /t REG_DWORD /d ${dword} /f`;
+  exec(command, (err) => {
+    if (err) {
+      console.error(`Failed to change reg key: ${command}`, err);
+      event.reply('onLog', 'Failed to update registry.', 'error');
+      return;
+    }
+    console.log(`Registry key updated: ${finalPath}\\${name} = ${dword}`);
+  });
 });
 // lock up jaydes
 app.whenReady().then(create_win);
