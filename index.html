@@ -1563,6 +1563,16 @@
                 <div class="settings-container">
                     <h2 class="settings-title">Settings</h2>
                     <div class="settings-list">
+                      <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-name">Instance Manager</div>
+                                <div class="setting-description">Show side panel for managing multiple Roblox instances</div>
+                            </div>
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="setting-instance-manager">
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
                         <div class="setting-item">
                             <div class="setting-info">
                                 <div class="setting-name">Always on top</div>
@@ -1727,6 +1737,7 @@
                                 <span class="checkmark"></span>
                             </label>
                         </div>
+                        
                     </div>
                 </div>
             </div>
@@ -1808,7 +1819,8 @@
             console_panel: false,
             auto_indent: true,
             ui_name: 'Chocosploit',
-            ui_rounding: true
+            ui_rounding: true,
+            instance_manager: false
           };
     
           function load_settings() {
@@ -2434,6 +2446,7 @@
               document.getElementById('setting-ui-name').value = settings.ui_name || 'Chocosploit';
               document.getElementById('titlebar-text').textContent = settings.ui_name || 'Chocosploit';
               document.getElementById('setting-ui-rounding').checked = settings.ui_rounding !== false;
+              document.getElementById('setting-instance-manager').checked = settings.instance_manager;
               
               apply_ui_rounding(settings.ui_rounding !== false);
               
@@ -2445,6 +2458,8 @@
                 console_panel.classList.remove('show');
                 stop_log_watcher();
               }
+              
+              ipcRenderer.send('toggle-instance-manager', settings.instance_manager);
             }
     
             function setup_settings_listeners() {
@@ -2577,7 +2592,19 @@
                 apply_ui_rounding(e.target.checked);
                 save_settings();
               });
+              
+              document.getElementById('setting-instance-manager').addEventListener('change', (e) => {
+                settings.instance_manager = e.target.checked;
+                ipcRenderer.send('toggle-instance-manager', e.target.checked);
+                save_settings();
+              });
             }
+            
+            ipcRenderer.on('instance-manager-closed', () => {
+              settings.instance_manager = false;
+              document.getElementById('setting-instance-manager').checked = false;
+              save_settings();
+            });
             
             function apply_ui_rounding(enabled) {
               const style_id = 'ui-rounding-override';
@@ -3553,6 +3580,40 @@
         
           if (type === 'error') {
             alert(`Error: ${msg}`);
+          }
+        });
+        
+        ipcRenderer.on('request-execute-on-client', (event, clientId) => {
+          const active_tab = tabs.find(t => t.active);
+          if (active_tab && active_tab.model) {
+            const script = active_tab.model.getValue();
+            ipcRenderer.send('execute', script, clientId);
+          }
+        });
+        
+        ipcRenderer.on('request-execute-all', (event) => {
+          const active_tab = tabs.find(t => t.active);
+          if (active_tab && active_tab.model) {
+            const script = active_tab.model.getValue();
+            ipcRenderer.send('execute', script);
+          }
+        });
+        
+        ipcRenderer.on('get-script-for-client', (event, clientId) => {
+          console.log('get-script-for-client received, clientId:', clientId);
+          const active_tab = tabs.find(t => t.active);
+          if (active_tab && active_tab.model) {
+            const script = active_tab.model.getValue();
+            ipcRenderer.send('execute-script-on-client', clientId, script);
+          }
+        });
+        
+        ipcRenderer.on('get-script-for-all', (event) => {
+          console.log('get-script-for-all received');
+          const active_tab = tabs.find(t => t.active);
+          if (active_tab && active_tab.model) {
+            const script = active_tab.model.getValue();
+            ipcRenderer.send('execute-script-on-all', script);
           }
         });
           

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        .window_container {
+            width: 100%;
+            height: 100%;
+            background: #141515;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #2a2a2a;
+        }
+
+        .header {
+            padding: 8px;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            align-items: center;
+            background: #141515;
+            -webkit-app-region: drag;
+        }
+
+        .header_inner {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            background: #1a1a1a;
+            border-radius: 3px;
+            padding: 0 10px;
+        }
+
+        .header_text {
+            flex: 1;
+            background: transparent;
+            padding: 5px 0;
+            color: #666;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+        }
+
+        .instances_list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px;
+            background: #141515;
+        }
+
+        .instance_item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            color: #888;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: background 0.1s;
+        }
+
+        .instance_item:hover {
+            background: #1e1e1e;
+        }
+
+        .instance_item.selected {
+            background: #1e1e1e;
+            color: #ccc;
+        }
+
+        .instance_item .status_dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #555;
+            flex-shrink: 0;
+        }
+
+        .instance_item.injected .status_dot {
+            background: #5a9a5c;
+        }
+
+        .instance_item .instance_name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .instances_list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .instances_list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .instances_list::-webkit-scrollbar-thumb {
+            background: #3d3d3d;
+            border-radius: 4px;
+        }
+
+        .instances_list::-webkit-scrollbar-thumb:hover {
+            background: #4d4d4d;
+        }
+
+        .empty_state {
+            padding: 15px 10px;
+            color: #555;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="window_container">
+        <div class="instances_list" id="instances_list">
+            <div class="empty_state">No instances</div>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        let instances = [];
+        let selected_client_ids = []; 
+
+        function render_instances() {
+            const list = document.getElementById('instances_list');
+
+            if (instances.length === 0) {
+                list.innerHTML = '<div class="empty_state">No instances</div>';
+                return;
+            }
+
+            list.innerHTML = instances.map(instance => {
+                const is_selected = instance.clientId && selected_client_ids.includes(instance.clientId);
+                return `
+                <div class="instance_item ${instance.injected ? 'injected' : ''} ${is_selected ? 'selected' : ''}" 
+                     data-pid="${instance.pid}" 
+                     data-client-id="${instance.clientId || ''}"
+                     data-injected="${instance.injected ? 'true' : 'false'}">
+                    <span class="status_dot"></span>
+                    <span class="instance_name">Roblox (pid: ${instance.pid})</span>
+                </div>
+            `}).join('');
+
+            list.querySelectorAll('.instance_item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const pid = parseInt(item.dataset.pid);
+                    const client_id = parseInt(item.dataset.clientId);
+                    const is_injected = item.dataset.injected === 'true';
+
+                    if (is_injected && client_id && !isNaN(client_id)) {
+
+                        const idx = selected_client_ids.indexOf(client_id);
+                        if (idx !== -1) {
+                            selected_client_ids.splice(idx, 1);
+                        } else {
+                            selected_client_ids.push(client_id);
+                        }
+                        ipcRenderer.send('set-selected-clients', selected_client_ids);
+                        render_instances();
+                    } else if (!is_injected) {
+
+                        ipcRenderer.send('inject-to-pid', pid);
+                    }
+                });
+            });
+        }
+
+        ipcRenderer.on('instances-updated', (event, new_instances, client_count) => {
+            instances = new_instances;
+
+            const valid_client_ids = instances.filter(i => i.clientId).map(i => i.clientId);
+            selected_client_ids = selected_client_ids.filter(id => valid_client_ids.includes(id));
+            render_instances();
+        });
+
+        ipcRenderer.send('get-instances');
+    </script>
+</body>
+</html>
